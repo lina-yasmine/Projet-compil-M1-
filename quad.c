@@ -5,6 +5,7 @@
 
 // char* itoa(int, char* , int);
 
+
 int changement = 1;
 /*********************************** Creation of the Quad ************************************************/
 void createQuad(char* a, char* b, char* c, char* d){

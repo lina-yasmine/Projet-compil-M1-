@@ -5,6 +5,7 @@
 	#include "syntaxique.tab.h"
 	#include "ts.h"
 	#include "mot.h"
+      
 	extern Col;
 	extern line_number;
 	extern YYSTYPE yylval;
@@ -101,7 +102,6 @@ WHILE       {Col+=yyleng;    rechercherMC (yytext,"Mot cle "," ",0, 1);   return
 {CMT}   {Col= Col+ strlen (yytext); line_number = yylineno;}
 {space} {Col=+yyleng;}
 {saut}  {Col=1; line_number+=yyleng;}
-
 
 
 "&&" {Col+=yyleng; rechercherMC (yytext,"Separateur",0,0, 2); return and;}

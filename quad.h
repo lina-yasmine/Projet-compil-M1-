@@ -7,6 +7,7 @@ struct quad
 	char* res;
 };
 
+
 struct quad liste[2000];
 int qc = 0;
 

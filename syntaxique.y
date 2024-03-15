@@ -198,6 +198,7 @@ CMP : sup
 	| not_egal 
 ;
 
+
 INIT_FINISH : entier 
 		  | idf 
 ;
