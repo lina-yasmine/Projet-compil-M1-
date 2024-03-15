@@ -10,15 +10,17 @@
 
 	
 	int line_number=1, Col=0;
-	
-	
-int yylex();
-int yyerror(char* msg);
+
+	int yylex();
+	int yyerror(char* msg);
 
 	void afficheErreur(char* d , int a)
     {   
-	  
     }
+    void initialisationMC();
+    void afficherMS();
+    void afficher();
+    void afficherDecl();
 
 %} 
 
@@ -78,7 +80,7 @@ PARTIE_DECLARATION :  DECLARATION_VARIABLE PARTIE_DECLARATION
 ;
 
 DECLARATION_VARIABLE : TYPE LISTE_VAR pnt_vir 
-					   | TYPE idf aff VALUE pnt_vir 
+					| TYPE idf aff VALUE pnt_vir 
 ;
 
 TYPE :    mc_int 
@@ -213,11 +215,11 @@ main ()
 
 
  
-/*initialisationMC();*/
+initialisationMC();
 yyparse();
-/*afficherMS();*/
-/*afficher();*/
-/*afficherDecl();*/
+afficherMS();
+afficher();
+/* afficherDecl(); */
 /* afficher_qdr();
 optimisation();
 afficher_qdr();
