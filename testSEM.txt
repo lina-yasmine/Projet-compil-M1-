@@ -1,0 +1,31 @@
+VAR_GLOBAL{
+	
+}
+DECLARATION{ 
+     INTEGER A;
+		FLOAT F;
+		CONST Pi = 3;
+		INTEGER Array [25];
+		
+		%% DOUBLE DECLARATION
+		%% INTEGER A;
+    }
+
+INSTRUCTION{
+     
+	
+%% IDF NON DECLARE
+		%% A = 4;
+		
+		%% INCOMPATIBILITE DES TYPES
+		%%F = A;
+		
+		%% MODIFIER CONSTANTE
+		%%Pi = 10;
+		
+		%% DEPASSEMENT DE CAPACITE
+		%% 
+        Array[222]=1;
+
+}
+

@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-// char* itoa(int, char* , int);
+
 
 int changement = 1;
 /*********************************** Creation of the Quad ************************************************/
@@ -77,6 +77,7 @@ void ajour_liste(int num_quad, int colon_quad, char val[])
 void suppQuad(int begin){
     int i=begin;
     char buffer[20];
+	int num;
     while(i<= qc){
         liste[i]=liste[i+1];
         i++;
@@ -86,8 +87,11 @@ void suppQuad(int begin){
     {
         // if its a jump and after our delete reduce the jump pos 
         if((!strcmp(liste[i].opr,"BNZ") || !strcmp(liste[i].opr,"BZ") ||!strcmp(liste[i].opr,"BR"))&&begin<atoi(liste[i].op1)){
-            // ajour_liste(i,1,itoa(atoi(liste[i].op1)-1,buffer,10));
-			printf("you need to update this line later");
+           
+          num = atoi(liste[i].op1) - 1;
+          sprintf(buffer, "%d", num);
+          ajour_liste(i, 1, buffer);
+
         }
     }
     

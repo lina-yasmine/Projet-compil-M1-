@@ -1,12 +1,5 @@
-typedef struct quad quad;
-struct quad
-{
-	char* opr;
-	char* op1;
-	char* op2;
-	char* res;
-};
-
+#pragma once
+#include"ts.h"
 struct quad liste[2000];
 int qc = 0;
 

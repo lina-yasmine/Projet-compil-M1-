@@ -7,24 +7,33 @@
     #include <stdlib.h>
     #include <time.h>
 	#include "pile.h"
+	#include "mot.c"
+	#include "ts.c"
 
-	
 	int line_number=1, Col=0;
+	int ntemp=1;
+	char temp [20];
+	char temp2 [20];
+	char temp3 [20];
+	char suavT [20];
+	char suavType [20];
+	char * out;
+	char opr1 [20];
+	int valTab;
+	char sauv_list_obj [20][100];
+	int indice_obj = 0;
+	char sauv_list_obj2 [20][100];
+	int indice_obj2 = 0;
+	int qcT=0;
+	int qcElse=0;
+	int qct2=0;
 
 	int yylex();
 	int yyerror(char* msg);
+	void afficheErreur(char* d , int a);
 
-	void afficheErreur(char* d , int a)
-    {   
-    }
-    void initialisationMC();
-    void afficherMS();
-    void afficher();
-    void afficherDecl();
 
 %} 
-
-
 
 %union {
 int num;
@@ -80,31 +89,123 @@ PARTIE_DECLARATION :  DECLARATION_VARIABLE PARTIE_DECLARATION
 ;
 
 DECLARATION_VARIABLE : TYPE LISTE_VAR pnt_vir 
-					| TYPE idf aff VALUE pnt_vir 
+					   | TYPE idf aff VALUE pnt_vir 
+					   { 
+						   if(doubleDeclaration($2)==0 ) 
+							{  
+									if(strcmp(suavType, $4.type) != 0) 
+									{
+										afficheErreur( $2 , 2);
+									}
+									else 
+									{      
+										inserIdfDecl($2,"Variable"); 
+										insererType($2,suavType,"Variable",1); // taille de ifd = 1
+										createQuad("=",$4.val,"",$2);
+									}
+										 
+							}
+							else  
+							{       
+								afficheErreur($2 , 1); 
+							}
+						}
+						
 ;
 
-TYPE :    mc_int 
-		| mc_float 
+TYPE :    mc_int {strcpy(suavType,$1);}
+		| mc_float {strcpy(suavType,$1);}
 ;
 
-LISTE_VAR : idf virgule LISTE_VAR 		
+
+LISTE_VAR : idf {p = NULL;} virgule LISTE_VAR 
+						    { 
+							    if(doubleDeclaration($1)==0 )
+								{ 
+									inserIdfDecl($1,"Variable"); 
+									empiler($1); 
+									while(p != NULL)  insererType(depiler(),suavType,"Variable",1); 
+								}
+                                else  
+								{      
+                                    afficheErreur($1 , 1); 
+							    }
+							}
 			|idf  
+			{ 
+			    if(doubleDeclaration($1)==0 )
+				{ 
+					inserIdfDecl($1,"Variable"); 
+					empiler($1); insererType(depiler(),suavType,"Variable",1);
+				}
+                else  
+				{       
+                    afficheErreur($1 , 1 ); 
+			    }
+			}
 ;
 
 DECLARATION_CONST : mc_const idf aff VALUE pnt_vir
+                    { 
+					    if(doubleDeclaration($2)==0 ) 
+						{ 
+							inserIdfDecl($2,"Constante"); 
+							insererType($2 ,suavType,"Constante",1); 
+							insererVal($2,$4.val,$4.type); 
+						}
+                        else  
+						{   
+                            afficheErreur($2 , 1); 
+					    }   
+					}
 ;
 
-VALUE :  entier
-		|round_brackets_o entier_sign round_brackets_f
-		| reel  
-		| reel_sign  
+VALUE : entier { $<EXP.type>$=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%d",$1);    $$.val=strdup(cstE);  }
+		|round_brackets_o entier_sign round_brackets_f{ $<EXP.type>$=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%d",$2);    $$.val=strdup(cstE);  }
+		| reel  { $<EXP.type>$=strdup("FLOAT"); char cstReel[20]; 
+			int C = $1;		
+             sprintf(cstReel,"%d",C); 
+               $$.val=strdup(cstReel); }
+		| reel_sign  { $<EXP.type>$=strdup("FLOAT"); char cstReel[20];  
+		int C = $1;
+             sprintf(cstReel,"%d",C);  
+               $$.val=strdup(cstReel);  }
 ;
 
 
-DECLARATION_TABLEAU : TYPE idf square_brackets_o entier square_brackets_f pnt_vir 
+DECLARATION_TABLEAU : TYPE idf square_brackets_o entier square_brackets_f pnt_vir
+                        { 
+						    if(doubleDeclaration($2)==0 ) 
+							{ 
+							    inserIdfDecl($2,"Tableau"); 
+								insererType($2,suavType,"Tableau",$4); 
+			                }
+                            else 
+							{       
+                                afficheErreur($2 , 1);
+			                }
+                        }  
                      |TYPE idf square_brackets_o entier_sign square_brackets_f pnt_vir
-
+					    { 
+						    if(doubleDeclaration($2)==0 ) 
+							{ 
+							    if( $4>0 )
+								{
+             					    inserIdfDecl($2,"Tableau"); 
+									insererType($2,suavType,"Tableau",$4); 
+			                    }
+							    else 
+								{
+                                    afficheErreur($2 , 3); 
+								}
+							}
+							else 
+							{      
+                                afficheErreur($2 , 1);
+				            }
+                        }  
 ;
+
 
 PARTIE_CODE :     SIMPLE_INSTRUCTIONS PARTIE_CODE
 				| COMPLEX_INSTRUCTIONS PARTIE_CODE
@@ -114,30 +215,193 @@ PARTIE_CODE :     SIMPLE_INSTRUCTIONS PARTIE_CODE
 
 
 
-SIMPLE_INSTRUCTIONS :  LEFT_SIDE aff RIGHT_SIDE pnt_vir	 		
+SIMPLE_INSTRUCTIONS :  LEFT_SIDE aff RIGHT_SIDE pnt_vir	 
+						{
+                           if ( routineModifCst($1.val) != -1)
+                            {  
+								if(strcmp($1.type,$3.type) != 0 )
+									{
+										printf("\nErreur semantique %d:%d, incompatibilite des types: type %s:%s  type %s:%s \n", line_number, Col,$1.val,$1.type,$3.val,$3.type);
+										_Exit(0);
+									}
+									else
+									{
+										createQuad("=",$3.val,"",$1.val);
+									}
+							}
+						}			
 ;
 
 
-LEFT_SIDE :  idf 
+LEFT_SIDE : idf 
+				{  
+					if(routinIdfDeclar($1) == 0)
+					{
+					   afficheErreur($1 , 5); 
+					}
+					char t2[12];
+					typeDeIdf(t2,$1);
+					$<EXP.type>$=strdup(t2);
+					$$.val=strdup($1) ;
+					   
+				}
 			| case
-			  
+			    {   
+				    $<EXP.type>$=strdup($1.type); 
+					$$.val=strdup($1.val) ; 
+					
+				}
+			| idf pnt idf 
+			    {  
+				    if(routinIdfDeclar($1) == 0 || routinIdfDeclar($3) == 0)
+					{
+                        afficheErreur($1 , 6); 
+					}
+                    char t2[12];
+                    typeDeIdf(t2,$3);
+                    $<EXP.type>$=strdup(t2);
+                    char Tmp[50]; strcpy(Tmp,$1); strcat(Tmp,"."); strcat(Tmp,$3); 
+		            $$.val = strdup(Tmp);
+                }
 ;
 
 
-RIGHT_SIDE :  ELEMENT 		
+RIGHT_SIDE : ELEMENT 
+			{  
+				$<EXP.type>$=strdup($1.type); $$.val=strdup($1.val) ; 
+			}
+						
 			| ELEMENT OPER RIGHT_SIDE  
-		    | round_brackets_o ELEMENT round_brackets_f OPER RIGHT_SIDE
+			{
+			    if(strcmp($1.type,$1.type) == 0)
+				{ 
+					$<EXP.type>$=strdup($1.type); 
+				}
+				else 
+				{
+					$<EXP.type>$=strdup("FLOAT");
+				}
+				
+				strcpy(opr1,$1.val);
+				sprintf(temp, "T%d", ntemp); 
+				createQuad($2,opr1,$3.val,temp);
+				$$.val = strdup(temp);
+				ntemp++;
+			}
+			
+			
+			/******************************************************************************************/
+			| round_brackets_o ELEMENT round_brackets_f OPER RIGHT_SIDE
+			{  
+				if(strcmp($2.type,$5.type) == 0)
+				{ 
+					$<EXP.type>$=strdup($2.type); 
+				}
+				else 
+				{
+					$<EXP.type>$=strdup("FLOAT");
+				}
+				sprintf(temp, "T%d", ntemp); 
+				strcpy(opr1,$2.val);
+				createQuad($4,opr1,$5.val,temp);
+				$$.val = strdup(temp);
+				ntemp++;
+				
+			}
+			
+			
+			/******************************************************************************************/
 			| round_brackets_o ELEMENT round_brackets_f
-		    | round_brackets_o ELEMENT OPER RIGHT_SIDE round_brackets_f OPER RIGHT_SIDE
-	     	| round_brackets_o ELEMENT OPER RIGHT_SIDE round_brackets_f
-		    
+			{  
+				$<EXP.type>$=strdup($2.type); $$.val=strdup($2.val) ; 	
+			}
+			
+			/******************************************************************************************/
+			| round_brackets_o ELEMENT OPER RIGHT_SIDE round_brackets_f OPER RIGHT_SIDE
+			{
+				
+				if(strcmp($2.type,$4.type) == 0 && strcmp($2.type,$7.type) == 0)
+				{ 
+					$<EXP.type>$=strdup($2.type); 
+				}
+				else 
+				{
+					$<EXP.type>$=strdup("FLOAT");
+				}
+				
+           			if(strcmp($2.type,$4.type) == 0)
+					{ 
+						$<EXP.type>$=strdup($2.type); 
+					}
+					else 
+					{
+						$<EXP.type>$=strdup("FLOAT");
+					}	
+					
+					sprintf(temp, "T%d", ntemp); 
+					strcpy(opr1,$2.val);
+					createQuad($3,opr1,$4.val,temp);
+					ntemp++;
+
+					sprintf(temp2, "T%d", ntemp); 
+					strcpy(opr1,$2.val);
+					createQuad($6,temp,$7.val,temp2);
+					$$.val = strdup(temp2);
+					ntemp++;					
+			}
+			
+			/******************************************************************************************/
+			| round_brackets_o ELEMENT OPER RIGHT_SIDE round_brackets_f
+			{
+				    if(strcmp($2.type,$4.type) == 0)
+					{ 
+						$<EXP.type>$=strdup($2.type); 
+					}
+					else 
+					{
+						$<EXP.type>$=strdup("FLOAT");
+					}	
+					
+					sprintf(temp, "T%d", ntemp); 
+					strcpy(opr1,$2.val);
+					createQuad($3,opr1,$4.val,temp);
+					$$.val = strdup(temp);
+					ntemp++;					
+			}
+            
 		       
 ;
 
 
 ELEMENT :idf 
-		| case 
-        |VALUE 
+            {  
+                if(routinIdfDeclar($1) == 0)
+				{
+                    afficheErreur($1 , 5);
+				}
+                char t2[12];
+                typeDeIdf(t2,$1);
+                $<EXP.type>$=strdup(t2);
+				$$.val=strdup($1) ;
+			}
+			
+		/******************************************************************************************/
+		| case {   $<EXP.type>$=strdup($1.type); $$.val=strdup($1.val) ; }
+		
+		/******************************************************************************************/
+	    | idf pnt idf 
+		    {   
+			    if(routinIdfDeclar($1) == 0 || routinIdfDeclar($3) == 0)
+				{
+                    afficheErreur($1 , 6); 
+				}
+                char t2[12];
+                typeDeIdf(t2,$3);
+                $<EXP.type>$=strdup(t2);
+			    char Tmp[50]; strcpy(Tmp,$1); strcat(Tmp,"."); strcat(Tmp,$3); 
+		        $$.val = strdup(Tmp);
+            }
+        |VALUE  {   $<EXP.type>$=strdup($1.type); $$.val=strdup($1.val) ;}
 ;
 
 
@@ -148,17 +412,95 @@ OPER : plus
 ;
 
 case: idf square_brackets_o var square_brackets_f 
+        {  
+		    if(routinIdfDeclar($1) == 0) 
+			{
+                afficheErreur($1 , 5); 
+			}
+           routineDebordementTab($1,valTab); 
+            char idft[12];
+            typeDeIdf(idft, $1);
+            $<EXP.type>$=strdup(idft); 
+			char Tmp[50]; strcpy(Tmp,$1); strcat(Tmp,"["); strcat(Tmp,$3); strcat(Tmp,"]"); 
+			$$.val = strdup(Tmp);
+        }
 ; 
-
 var : idf 
-    | entier 
+        { 
+		    if(routinIdfDeclar($1) == 0)
+			{
+                afficheErreur($1 , 7);
+		    }                                    
+            else   
+			{ 
+			    $$=strdup($1);
+            }
+        }
+    | entier { valTab=$1 ; char cstNat[15];  sprintf(cstNat,"%d",$1); $$=strdup(cstNat); }
     ;
 
 
-COMPLEX_INSTRUCTIONS :
- mc_if round_brackets_o CONDITION round_brackets_f curly_brackets_o PARTIE_CODE curly_brackets_f ELSE
-| mc_for round_brackets_o idf double_pnt INIT_FINISH double_pnt entier double_pnt INIT_FINISH round_brackets_f curly_brackets_o PARTIE_CODE curly_brackets_f 
-| mc_while round_brackets_o CONDITION round_brackets_f curly_brackets_o PARTIE_CODE curly_brackets_f
+
+
+COMPLEX_INSTRUCTIONS : mc_if round_brackets_o CONDITION round_brackets_f 
+						{
+							qcT=qc;createQuad("BZ","",liste[qc-1].res,"");
+						}
+					   curly_brackets_o PARTIE_CODE curly_brackets_f ELSE
+					   
+					   /******************************************************************************************/
+						| mc_for round_brackets_o idf double_pnt INIT_FINISH double_pnt entier double_pnt INIT_FINISH round_brackets_f 
+						{
+						
+							if(routinIdfDeclar($3) == 0)
+							{
+                                afficheErreur($3 , 5); 
+							}
+							
+							createQuad("=",$5,"",$3);
+							qcT=qc;
+							sprintf(temp, "T%d", ntemp); 
+							createQuadC(3,$3,$5,temp);
+							ntemp++;
+							
+							sprintf(temp2, "T%d", ntemp); 
+							createQuadC(4,$3,$9,temp2);
+							ntemp++;
+							
+							sprintf(temp3, "T%d", ntemp);
+							createQuadL(3,temp,temp2,temp3);
+							ntemp++;
+							qct2=qc;
+							createQuad("BZ","",temp3,"");
+							
+						}
+						  curly_brackets_o PARTIE_CODE curly_brackets_f 
+						    {
+								sprintf(temp, "T%d", ntemp);
+								createQuad("+",$3,convert($7),temp);
+								createQuad("=",temp,"",$3);
+								ntemp++;
+						        createQuad("BR",convert(qcT),"","");
+								liste[qct2].op1=convert(qc);
+						    }
+							
+						/******************************************************************************************/
+						| mc_while round_brackets_o 
+						{
+							qcT=qc;
+						}
+						  CONDITION round_brackets_f 
+						{
+							qct2=qc;
+							createQuad("BZ","",liste[qc-1].res,"");
+							
+						}
+						  curly_brackets_o PARTIE_CODE curly_brackets_f
+						{
+							createQuad("BR",convert(qcT),"","");
+							liste[qct2].op1=convert(qc);
+						}
+
 | mc_read round_brackets_o idf round_brackets_f pnt_vir
 | mc_write round_brackets_o INSTRUCTION_WRITE round_brackets_f pnt_vir					
 ;
@@ -173,34 +515,154 @@ write_arg :
     | idf
     ;
 
-ELSE :   mc_else curly_brackets_o PARTIE_CODE curly_brackets_f 
-		| 
+ELSE : 	{
+			liste[qcT].op1=convert(qc+1);
+			qcElse=qc;
+			createQuad("BR","","","");
+		}
+		mc_else curly_brackets_o PARTIE_CODE curly_brackets_f 
+		{
+			liste[qcElse].op1=convert(qc);
+		}
+		| {
+			liste[qcT].op1=convert(qc);
+
+		}
 ;
 
-CONDITION :   RIGHT_SIDE CMP RIGHT_SIDE 
+CONDITION : RIGHT_SIDE CMP RIGHT_SIDE 
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($2.val),$1.val,$3.val,temp);
+				$$.val = strdup(temp);
+				ntemp++;
+			}
+			/******************************************************************************************/
 			| RIGHT_SIDE CMP RIGHT_SIDE and CONDITION
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($2.val),$1.val,$3.val,temp);
+				ntemp++;
+				
+				sprintf(temp2, "T%d", ntemp);
+				createQuadL(3,temp,$5.val,temp2);
+				$$.val = strdup(temp2);
+				ntemp++;
+			}
+			
+			/******************************************************************************************/
 			| RIGHT_SIDE CMP RIGHT_SIDE or CONDITION
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($2.val),$1.val,$3.val,temp);
+				ntemp++;
+				
+				sprintf(temp2, "T%d", ntemp);
+				createQuadL(2,temp,$5.val,temp2);
+				$$.val = strdup(temp2);
+				ntemp++;
+			}
+			
+			/******************************************************************************************/
 			| round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f
-            | negation round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($3.val),$2.val,$4.val,temp);
+				$$.val = strdup(temp);
+				ntemp++;
+			}
+			
+			/******************************************************************************************/
+			| negation round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($4.val),$3.val,$5.val,temp);
+				ntemp++;
+				
+				sprintf(temp2, "T%d", ntemp);
+				createQuadL(1,temp,"",temp2);
+				$$.val = strdup(temp2);
+				ntemp++;
+			}
+			/******************************************************************************************/
 			| round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f and CONDITION
-            | negation round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f and CONDITION
-		    | round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f or CONDITION
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($3.val),$2.val,$4.val,temp);
+				ntemp++;
+				
+				sprintf(temp2, "T%d", ntemp);
+				createQuadL(3,temp,$7.val,temp2);
+				$$.val = strdup(temp2);
+				ntemp++;
+			}
+			/******************************************************************************************/
+			| negation round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f and CONDITION
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($4.val),$3.val,$5.val,temp);
+				ntemp++;
+			
+
+				sprintf(temp2, "T%d", ntemp);
+				createQuadL(1,temp,"",temp2);
+				ntemp++;
+			
+				sprintf(temp3, "T%d", ntemp);
+				createQuadL(3,temp,$8.val,temp3);	
+				$$.val = strdup(temp3);
+				ntemp++;
+			}
+			/******************************************************************************************/
+			| round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f or CONDITION
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($3.val),$2.val,$4.val,temp);
+				ntemp++;
+				
+				sprintf(temp2, "T%d", ntemp);
+				createQuadL(2,temp,$7.val,temp2);
+				$$.val = strdup(temp2);
+				ntemp++;
+			}
+			/******************************************************************************************/
 			| negation round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f or CONDITION
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($4.val),$3.val,$5.val,temp);
+				ntemp++;
+			
 
+				sprintf(temp2, "T%d", ntemp);
+				createQuadL(1,temp,"",temp2);
+				ntemp++;
+			
+				sprintf(temp3, "T%d", ntemp);
+				createQuadL(2,temp,$8.val,temp3);
+				$$.val = strdup(temp3);
+				ntemp++;
+			}
 ;
 
 
-CMP : sup 
-	| inf 
-	| sup_eg 
-	| inf_eg 
-	| egal 
-	| not_egal 
+CMP : sup {$$.val = strdup("1");}
+	| inf {$$.val = strdup("2");}
+	| sup_eg {$$.val = strdup("3");}
+	| inf_eg {$$.val = strdup("4");}
+	| egal {$$.val = strdup("5");}
+	| not_egal {$$.val = strdup("6");}
 ;
 
-INIT_FINISH : entier 
-		  | idf 
+INIT_FINISH : entier {char cstNat[15];  sprintf(cstNat,"%d",$1); $$=strdup(cstNat);}
+		  | idf { 
+					if(routinIdfDeclar($1) == 0)
+					{
+						afficheErreur($1 , 5); 
+					}
+					
+				}
 ;
+
 
 
 
@@ -209,22 +671,62 @@ INIT_FINISH : entier
 
 int yyerror(char *msg){ printf("Line %d ,Col %d : Erreur Syntaxique  \n",line_number, Col);exit(0); }
 
-main () 
+void afficheErreur(char* d , int a)
+    {   
+		switch(a)
+		{    
+		    case 1 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i : Double declaration de la variable %s \n", line_number, Col, d);
+			break;
+			case 2 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i : incompatibilité des types %s \n", line_number, Col, d);
+			break;
+		    case 3 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i : la taille du tableau %s est négative ! \n", line_number, Col, d);
+			break;
+			case 4 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i :  Utilisation d'une Variable %s non initialisé  \n", line_number, Col, d);
+				// still did'nt do this one
+			break;
+			case 5 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i :  Variable Non déclarée %s \n", line_number, Col, d);
+			break;
+			case 6 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i :  Variable %s non déclarée  \n", line_number, Col, d);
+			break;
+			case 7 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i :  Indice du tableau non déclarée %s \n", line_number, Col, d);
+			break;
+			case 8 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i : Modification d'une constante: %s \n", line_number, Col, d);
+			break;
+			case 9 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i : Dépassement de capacité %s \n", line_number, Col, d);
+			break;
+			
+		}
+		exit(0);
+    }
+
+
+
+int main () 
 { 
 
-
-
- 
 initialisationMC();
 yyparse();
 afficherMS();
 afficher();
-/* afficherDecl(); */
-/* afficher_qdr();
-optimisation();
-afficher_qdr();
-createAssembler(qc,liste); */
+afficherDecl();
 
+// quadruplets avant optimisation
+afficher_qdr();
+
+optimisation();
+// quadruplets après l'optimisation
+afficher_qdr();
+createAssembler(qc,liste);
+return 0;
 }
-yywrap()
-{}
+int yywrap()
+{return 0;}
