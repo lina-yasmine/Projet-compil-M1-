@@ -17,6 +17,7 @@
 	char temp3 [20];
 	char suavT [20];
 	char suavType [20];
+	char* sauvidf; 
 	char * out;
 	char opr1 [20];
 	int valTab;
@@ -78,18 +79,22 @@ char * val;
 
 %% 
 
-S : mc_var curly_brackets_o PARTIE_DECLARATION curly_brackets_f mc_dec curly_brackets_o PARTIE_DECLARATION curly_brackets_f mc_inst curly_brackets_o PARTIE_CODE curly_brackets_f
+S : mc_var curly_brackets_o GLOBAL_DECLARATIONS curly_brackets_f mc_dec curly_brackets_o LOCAL_DECLARATIONS curly_brackets_f mc_inst curly_brackets_o PARTIE_CODE curly_brackets_f
 { printf ("\n\nProgramme syntaxiquement correcte\n\n"); YYACCEPT; }
 ;
 
-PARTIE_DECLARATION :  DECLARATION_VARIABLE PARTIE_DECLARATION
-					| DECLARATION_CONST PARTIE_DECLARATION
-					| DECLARATION_TABLEAU PARTIE_DECLARATION
-					|
+
+GLOBAL_DECLARATIONS : DECLARATION_VARIABLE pnt_vir GLOBAL_DECLARATIONS
+                     |
 ;
 
-DECLARATION_VARIABLE : TYPE LISTE_VAR pnt_vir 
-					   | TYPE idf aff VALUE pnt_vir 
+LOCAL_DECLARATIONS : DECLARATION_VARIABLE pnt_vir LOCAL_DECLARATIONS
+                    |
+;
+
+DECLARATION_VARIABLE : TYPE LISTE_VAR  
+					   
+					| TYPE idf aff VALUE 
 					   { 
 						   if(doubleDeclaration($2)==0 ) 
 							{  
@@ -101,6 +106,7 @@ DECLARATION_VARIABLE : TYPE LISTE_VAR pnt_vir
 									{      
 										inserIdfDecl($2,"Variable"); 
 										insererType($2,suavType,"Variable",1); // taille de ifd = 1
+							            insererVal($2,$4.val,$4.type); 
 										createQuad("=",$4.val,"",$2);
 									}
 										 
@@ -111,6 +117,52 @@ DECLARATION_VARIABLE : TYPE LISTE_VAR pnt_vir
 							}
 						}
 						
+					| mc_const idf aff VALUE 
+                   
+				    { 
+					    if(doubleDeclaration($2)==0 ) 
+						{ 
+							inserIdfDecl($2,"Constante"); 
+							insererType($2 ,suavType,"Constante",1); 
+							insererVal($2,$4.val,$4.type); 
+						}
+                        else  
+						{   
+                            afficheErreur($2 , 1); 
+					    }   
+					}
+    
+                    | TYPE idf square_brackets_o entier square_brackets_f 
+                        { 
+						    if(doubleDeclaration($2)==0 ) 
+							{ 
+							    inserIdfDecl($2,"Tableau"); 
+								insererType($2,suavType,"Tableau",$4); 
+			                }
+                            else 
+							{       
+                                afficheErreur($2 , 1);
+			                }
+                        }  
+                    | TYPE idf square_brackets_o entier_sign square_brackets_f 
+					    { 
+						    if(doubleDeclaration($2)==0 ) 
+							{ 
+							    if( $4>0 )
+								{
+             					    inserIdfDecl($2,"Tableau"); 
+									insererType($2,suavType,"Tableau",$4); 
+			                    }
+							    else 
+								{
+                                    afficheErreur($2 , 3); 
+								}
+							}
+							else 
+							{      
+                                afficheErreur($2 , 1);
+				            }
+                        }  
 ;
 
 TYPE :    mc_int {strcpy(suavType,$1);}
@@ -145,20 +197,7 @@ LISTE_VAR : idf {p = NULL;} virgule LISTE_VAR
 			}
 ;
 
-DECLARATION_CONST : mc_const idf aff VALUE pnt_vir
-                    { 
-					    if(doubleDeclaration($2)==0 ) 
-						{ 
-							inserIdfDecl($2,"Constante"); 
-							insererType($2 ,suavType,"Constante",1); 
-							insererVal($2,$4.val,$4.type); 
-						}
-                        else  
-						{   
-                            afficheErreur($2 , 1); 
-					    }   
-					}
-;
+
 
 VALUE : entier { $<EXP.type>$=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%d",$1);    $$.val=strdup(cstE);  }
 		|round_brackets_o entier_sign round_brackets_f{ $<EXP.type>$=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%d",$2);    $$.val=strdup(cstE);  }
@@ -172,39 +211,6 @@ VALUE : entier { $<EXP.type>$=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%
                $$.val=strdup(cstReel);  }
 ;
 
-
-DECLARATION_TABLEAU : TYPE idf square_brackets_o entier square_brackets_f pnt_vir
-                        { 
-						    if(doubleDeclaration($2)==0 ) 
-							{ 
-							    inserIdfDecl($2,"Tableau"); 
-								insererType($2,suavType,"Tableau",$4); 
-			                }
-                            else 
-							{       
-                                afficheErreur($2 , 1);
-			                }
-                        }  
-                     |TYPE idf square_brackets_o entier_sign square_brackets_f pnt_vir
-					    { 
-						    if(doubleDeclaration($2)==0 ) 
-							{ 
-							    if( $4>0 )
-								{
-             					    inserIdfDecl($2,"Tableau"); 
-									insererType($2,suavType,"Tableau",$4); 
-			                    }
-							    else 
-								{
-                                    afficheErreur($2 , 3); 
-								}
-							}
-							else 
-							{      
-                                afficheErreur($2 , 1);
-				            }
-                        }  
-;
 
 
 PARTIE_CODE :     SIMPLE_INSTRUCTIONS PARTIE_CODE
@@ -226,6 +232,8 @@ SIMPLE_INSTRUCTIONS :  LEFT_SIDE aff RIGHT_SIDE pnt_vir
 									}
 									else
 									{
+										
+							            insererVal(sauvidf,$3.val,$3.type); 
 										createQuad("=",$3.val,"",$1.val);
 									}
 							}
@@ -239,10 +247,12 @@ LEFT_SIDE : idf
 					{
 					   afficheErreur($1 , 5); 
 					}
+					sauvidf=$1;
 					char t2[12];
 					typeDeIdf(t2,$1);
 					$<EXP.type>$=strdup(t2);
 					$$.val=strdup($1) ;
+					
 					   
 				}
 			| case
@@ -251,18 +261,7 @@ LEFT_SIDE : idf
 					$$.val=strdup($1.val) ; 
 					
 				}
-			| idf pnt idf 
-			    {  
-				    if(routinIdfDeclar($1) == 0 || routinIdfDeclar($3) == 0)
-					{
-                        afficheErreur($1 , 6); 
-					}
-                    char t2[12];
-                    typeDeIdf(t2,$3);
-                    $<EXP.type>$=strdup(t2);
-                    char Tmp[50]; strcpy(Tmp,$1); strcat(Tmp,"."); strcat(Tmp,$3); 
-		            $$.val = strdup(Tmp);
-                }
+			
 ;
 
 
@@ -389,18 +388,6 @@ ELEMENT :idf
 		| case {   $<EXP.type>$=strdup($1.type); $$.val=strdup($1.val) ; }
 		
 		/******************************************************************************************/
-	    | idf pnt idf 
-		    {   
-			    if(routinIdfDeclar($1) == 0 || routinIdfDeclar($3) == 0)
-				{
-                    afficheErreur($1 , 6); 
-				}
-                char t2[12];
-                typeDeIdf(t2,$3);
-                $<EXP.type>$=strdup(t2);
-			    char Tmp[50]; strcpy(Tmp,$1); strcat(Tmp,"."); strcat(Tmp,$3); 
-		        $$.val = strdup(Tmp);
-            }
         |VALUE  {   $<EXP.type>$=strdup($1.type); $$.val=strdup($1.val) ;}
 ;
 
@@ -417,6 +404,7 @@ case: idf square_brackets_o var square_brackets_f
 			{
                 afficheErreur($1 , 5); 
 			}
+			sauvidf=$1;
            routineDebordementTab($1,valTab); 
             char idft[12];
             typeDeIdf(idft, $1);
@@ -718,14 +706,14 @@ yyparse();
 afficherMS();
 afficher();
 afficherDecl();
-
+/* 
 // quadruplets avant optimisation
 afficher_qdr();
 
 optimisation();
 // quadruplets après l'optimisation
 afficher_qdr();
-createAssembler(qc,liste);
+createAssembler(qc,liste); */
 return 0;
 }
 int yywrap()
