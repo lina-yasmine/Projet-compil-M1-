@@ -276,21 +276,59 @@ void insererType(char entites[], char typ[], char nature[], int taille)
 	}
 }
 
+double operationMath(double a, const char* op, double b) {
+    switch (op[0]) {
+        case '+': return a + b;
+        case '-': return a - b;
+        case '*': return a * b;
+        case '/':
+            if (b != 0) {
+                return a / b;
+            } else {
+                fprintf(stderr, "Erreur Sémantique: division par zéro\n");
+                return 0; 
+            }
+        default:
+            fprintf(stderr, "Erreur : opérateur non reconnu '%s'\n", op);
+            return 0; 
+    }
+}
+
+
+int compare(double left, const char* cmp, double right) {
+    if (strcmp(cmp, ">") == 0) {
+        return left > right;
+    } else if (strcmp(cmp, "<") == 0) {
+        return left < right;
+    } else if (strcmp(cmp, ">=") == 0) {
+        return left >= right;
+    } else if (strcmp(cmp, "<=") == 0) {
+        return left <= right;
+    } else if (strcmp(cmp, "!=") == 0) {
+        return left != right;
+    } else if (strcmp(cmp, "==") == 0) {
+        return left == right;
+    } else {
+        fprintf(stderr, "Erreur : opérateur de comparaison non reconnu '%s'\n", cmp);
+        return 0;
+    }
+}
+
 void afficher()
 {
 	printf("  \n");
 	printf("  \n");
 	printf("\t ********************************** Table des symboles **************************************** /\n");
-	printf("\t _________________________________________________________________________________________________ \n");
-	printf("\t|      NomEntite      |   CodeEntite        |      NatureEntite     |     TypeEntite   | taille  | \n");
-	printf("\t _________________________________________________________________________________________________\n");
+	printf("\t ____________________________________________________________________________________________________________ \n");
+	printf("\t|      NomEntite      |   CodeEntite        |      NatureEntite     |     TypeEntite   | taille  | Valeur  | \n");
+	printf("\t ____________________________________________________________________________________________________________\n");
 	int i = 0;
 	for (i = 0; i < 673; i++)
 	{
 		entite *ptr = TableHachage[i].tete;
 		while (ptr != NULL)
 		{
-			printf("\t| %20s | %20s | %20s | %15s | %5d   |  \n", ptr->nom, ptr->code, ptr->nature, ptr->type, ptr->taille);
+			printf("\t| %20s | %20s | %20s | %15s | %5d   | %5s   |   \n", ptr->nom, ptr->code, ptr->nature, ptr->type, ptr->taille, ptr->valeur);
 
 			ptr = ptr->svt;
 		}

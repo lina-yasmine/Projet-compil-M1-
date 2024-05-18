@@ -64,6 +64,8 @@ void insererType(char entites[], char typ[], char nature[],int taille);
 void afficher();
 void createAssembler(int qc, struct quad liste[2000]);
 void afficherDecl();
+double operationMath(double a, const char* op, double b);
+int compare(double left, const char* cmp, double right);
 
 
 

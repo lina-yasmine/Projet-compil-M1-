@@ -44,6 +44,7 @@ char * str;
 struct {
 char * type;
 char * val;
+char *t;
 } EXP;
 
 }
@@ -107,7 +108,7 @@ DECLARATION_VARIABLE : TYPE LISTE_VAR
 										inserIdfDecl($2,"Variable"); 
 										insererType($2,suavType,"Variable",1); // taille de ifd = 1
 							            insererVal($2,$4.val,$4.type); 
-										createQuad("=",$4.val,"",$2);
+										createQuad("=",$4.t,"",$2);
 									}
 										 
 							}
@@ -199,16 +200,18 @@ LISTE_VAR : idf {p = NULL;} virgule LISTE_VAR
 
 
 
-VALUE : entier { $<EXP.type>$=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%d",$1);    $$.val=strdup(cstE);  }
-		|round_brackets_o entier_sign round_brackets_f{ $<EXP.type>$=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%d",$2);    $$.val=strdup(cstE);  }
+VALUE : entier { $<EXP.type>$=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%d",$1);    $$.val=strdup(cstE);  $$.t=strdup(cstE);  }
+		|round_brackets_o entier_sign round_brackets_f{ $<EXP.type>$=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%d",$2);    $$.val=strdup(cstE);  $$.t=strdup(cstE);   }
 		| reel  { $<EXP.type>$=strdup("FLOAT"); char cstReel[20]; 
 			int C = $1;		
              sprintf(cstReel,"%d",C); 
-               $$.val=strdup(cstReel); }
+               $$.val=strdup(cstReel);
+			   $$.t=strdup(cstReel); }
 		| reel_sign  { $<EXP.type>$=strdup("FLOAT"); char cstReel[20];  
 		int C = $1;
              sprintf(cstReel,"%d",C);  
-               $$.val=strdup(cstReel);  }
+               $$.val=strdup(cstReel);  
+			   $$.t=strdup(cstReel);}
 ;
 
 
@@ -234,7 +237,7 @@ SIMPLE_INSTRUCTIONS :  LEFT_SIDE aff RIGHT_SIDE pnt_vir
 									{
 										
 							            insererVal(sauvidf,$3.val,$3.type); 
-										createQuad("=",$3.val,"",$1.val);
+										createQuad("=",$3.t,"",$1.val);
 									}
 							}
 						}			
@@ -252,6 +255,7 @@ LEFT_SIDE : idf
 					typeDeIdf(t2,$1);
 					$<EXP.type>$=strdup(t2);
 					$$.val=strdup($1) ;
+					$$.t=strdup($1) ;
 					
 					   
 				}
@@ -259,6 +263,7 @@ LEFT_SIDE : idf
 			    {   
 				    $<EXP.type>$=strdup($1.type); 
 					$$.val=strdup($1.val) ; 
+					$$.t=strdup($1.val) ;
 					
 				}
 			
@@ -268,6 +273,7 @@ LEFT_SIDE : idf
 RIGHT_SIDE : ELEMENT 
 			{  
 				$<EXP.type>$=strdup($1.type); $$.val=strdup($1.val) ; 
+				$$.t = strdup($1.val);
 			}
 						
 			| ELEMENT OPER RIGHT_SIDE  
@@ -283,9 +289,15 @@ RIGHT_SIDE : ELEMENT
 				
 				strcpy(opr1,$1.val);
 				sprintf(temp, "T%d", ntemp); 
-				createQuad($2,opr1,$3.val,temp);
-				$$.val = strdup(temp);
-				ntemp++;
+				createQuad($2,opr1,$3.t,temp); 
+
+				double result=operationMath(atoi($1.val),$2, atoi($3.val));
+				char result_str[50];
+				sprintf(result_str, "%.3f", result);
+				$$.val = strdup(result_str);
+				$$.t = strdup(temp);
+			    ntemp++;
+				
 			}
 			
 			
@@ -302,9 +314,14 @@ RIGHT_SIDE : ELEMENT
 				}
 				sprintf(temp, "T%d", ntemp); 
 				strcpy(opr1,$2.val);
-				createQuad($4,opr1,$5.val,temp);
-				$$.val = strdup(temp);
-				ntemp++;
+				createQuad($4,opr1,$5.t,temp);
+				
+				double result=operationMath(atoi($2.val),$4, atoi($5.val));
+				char result_str[50];
+				sprintf(result_str, "%f", result);
+				$$.val = strdup(result_str);
+				$$.t = strdup(temp);
+			    ntemp++;
 				
 			}
 			
@@ -312,7 +329,7 @@ RIGHT_SIDE : ELEMENT
 			/******************************************************************************************/
 			| round_brackets_o ELEMENT round_brackets_f
 			{  
-				$<EXP.type>$=strdup($2.type); $$.val=strdup($2.val) ; 	
+				$<EXP.type>$=strdup($2.type); $$.val=strdup($2.val) ; $$.t = strdup($2.val);	
 			}
 			
 			/******************************************************************************************/
@@ -339,14 +356,21 @@ RIGHT_SIDE : ELEMENT
 					
 					sprintf(temp, "T%d", ntemp); 
 					strcpy(opr1,$2.val);
-					createQuad($3,opr1,$4.val,temp);
+					createQuad($3,opr1,$4.t,temp);
 					ntemp++;
 
 					sprintf(temp2, "T%d", ntemp); 
 					strcpy(opr1,$2.val);
-					createQuad($6,temp,$7.val,temp2);
-					$$.val = strdup(temp2);
-					ntemp++;					
+					createQuad($6,temp,$7.t,temp2);
+
+					double result=operationMath(atoi($2.val),$6, atoi($7.val));
+					char result_str[50];
+				    sprintf(result_str, "%f", result);
+				    $$.val = strdup(result_str);
+				    $$.t = strdup(temp2);
+			        ntemp++;
+				
+										
 			}
 			
 			/******************************************************************************************/
@@ -363,9 +387,14 @@ RIGHT_SIDE : ELEMENT
 					
 					sprintf(temp, "T%d", ntemp); 
 					strcpy(opr1,$2.val);
-					createQuad($3,opr1,$4.val,temp);
-					$$.val = strdup(temp);
-					ntemp++;					
+					createQuad($3,opr1,$4.t,temp);
+
+					double result=operationMath(atoi($2.val),$3, atoi($4.val));
+					char result_str[50];
+				    sprintf(result_str, "%f", result);
+				    $$.val = strdup(result_str);
+				    $$.t = strdup(temp);
+			        ntemp++;					
 			}
             
 		       
@@ -382,13 +411,14 @@ ELEMENT :idf
                 typeDeIdf(t2,$1);
                 $<EXP.type>$=strdup(t2);
 				$$.val=strdup($1) ;
+				$$.t=strdup($1) ;
 			}
 			
 		/******************************************************************************************/
-		| case {   $<EXP.type>$=strdup($1.type); $$.val=strdup($1.val) ; }
+		| case {   $<EXP.type>$=strdup($1.type); $$.val=strdup($1.val) ;$$.t=strdup($1.val) ;  }
 		
 		/******************************************************************************************/
-        |VALUE  {   $<EXP.type>$=strdup($1.type); $$.val=strdup($1.val) ;}
+        |VALUE  {   $<EXP.type>$=strdup($1.type); $$.val=strdup($1.val) ; $$.t=strdup($1.val) ; }
 ;
 
 
@@ -411,6 +441,8 @@ case: idf square_brackets_o var square_brackets_f
             $<EXP.type>$=strdup(idft); 
 			char Tmp[50]; strcpy(Tmp,$1); strcat(Tmp,"["); strcat(Tmp,$3); strcat(Tmp,"]"); 
 			$$.val = strdup(Tmp);
+			$$.t = strdup(Tmp);
+
         }
 ; 
 var : idf 
@@ -523,6 +555,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi($2.val),$1.val,$3.val,temp);
 				$$.val = strdup(temp);
+				$$.t = strdup(temp);
 				ntemp++;
 			}
 			/******************************************************************************************/
@@ -535,6 +568,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 				sprintf(temp2, "T%d", ntemp);
 				createQuadL(3,temp,$5.val,temp2);
 				$$.val = strdup(temp2);
+				$$.t = strdup(temp2);
 				ntemp++;
 			}
 			
@@ -548,6 +582,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 				sprintf(temp2, "T%d", ntemp);
 				createQuadL(2,temp,$5.val,temp2);
 				$$.val = strdup(temp2);
+				$$.t = strdup(temp2);
 				ntemp++;
 			}
 			
@@ -557,6 +592,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi($3.val),$2.val,$4.val,temp);
 				$$.val = strdup(temp);
+				$$.t = strdup(temp);
 				ntemp++;
 			}
 			
@@ -570,6 +606,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 				sprintf(temp2, "T%d", ntemp);
 				createQuadL(1,temp,"",temp2);
 				$$.val = strdup(temp2);
+				$$.t = strdup(temp2);
 				ntemp++;
 			}
 			/******************************************************************************************/
@@ -582,6 +619,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 				sprintf(temp2, "T%d", ntemp);
 				createQuadL(3,temp,$7.val,temp2);
 				$$.val = strdup(temp2);
+				$$.t = strdup(temp2);
 				ntemp++;
 			}
 			/******************************************************************************************/
@@ -599,6 +637,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 				sprintf(temp3, "T%d", ntemp);
 				createQuadL(3,temp,$8.val,temp3);	
 				$$.val = strdup(temp3);
+				$$.t = strdup(temp3);
 				ntemp++;
 			}
 			/******************************************************************************************/
@@ -611,6 +650,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 				sprintf(temp2, "T%d", ntemp);
 				createQuadL(2,temp,$7.val,temp2);
 				$$.val = strdup(temp2);
+				$$.t = strdup(temp2);
 				ntemp++;
 			}
 			/******************************************************************************************/
@@ -628,17 +668,18 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 				sprintf(temp3, "T%d", ntemp);
 				createQuadL(2,temp,$8.val,temp3);
 				$$.val = strdup(temp3);
+				$$.t = strdup(temp3);
 				ntemp++;
 			}
 ;
 
 
-CMP : sup {$$.val = strdup("1");}
-	| inf {$$.val = strdup("2");}
-	| sup_eg {$$.val = strdup("3");}
-	| inf_eg {$$.val = strdup("4");}
-	| egal {$$.val = strdup("5");}
-	| not_egal {$$.val = strdup("6");}
+CMP : sup {$$.val = strdup("1"); $$.t = strdup("1"); }
+	| inf {$$.val = strdup("2"); $$.t = strdup("2");}
+	| sup_eg {$$.val = strdup("3"); $$.t = strdup("3");}
+	| inf_eg {$$.val = strdup("4"); $$.t = strdup("4");}
+	| egal {$$.val = strdup("5"); $$.t = strdup("5");}
+	| not_egal {$$.val = strdup("6"); $$.t = strdup("6");} 
 ;
 
 INIT_FINISH : entier {char cstNat[15];  sprintf(cstNat,"%d",$1); $$=strdup(cstNat);}
@@ -706,14 +747,14 @@ yyparse();
 afficherMS();
 afficher();
 afficherDecl();
-/* 
+
 // quadruplets avant optimisation
 afficher_qdr();
 
-optimisation();
+ /* optimisation();
 // quadruplets après l'optimisation
 afficher_qdr();
-createAssembler(qc,liste); */
+createAssembler(qc,liste);   */
 return 0;
 }
 int yywrap()
