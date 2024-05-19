@@ -1,4 +1,6 @@
 %{
+
+	#include "math.h"	
 	#include "quad.c"
 	#include <stddef.h>
 	#include <stdio.h>
@@ -15,8 +17,8 @@
 	char temp [20];
 	char temp2 [20];
 	char temp3 [20];
-	char suavT [20];
-	char suavType [20];
+	char sauvT [20];
+	char sauvType [20];
 	char* sauvidf; 
 	char * out;
 	char opr1 [20];
@@ -99,14 +101,14 @@ DECLARATION_VARIABLE : TYPE LISTE_VAR
 					   { 
 						   if(doubleDeclaration($2)==0 ) 
 							{  
-									if(strcmp(suavType, $4.type) != 0) 
+									if(strcmp(sauvType, $4.type) != 0) 
 									{
 										afficheErreur( $2 , 2);
 									}
 									else 
 									{      
 										inserIdfDecl($2,"Variable"); 
-										insererType($2,suavType,"Variable",1); // taille de ifd = 1
+										insererType($2,sauvType,"Variable",1); // taille de ifd = 1
 							            insererVal($2,$4.val,$4.type); 
 										createQuad("=",$4.t,"",$2);
 									}
@@ -124,7 +126,7 @@ DECLARATION_VARIABLE : TYPE LISTE_VAR
 					    if(doubleDeclaration($2)==0 ) 
 						{ 
 							inserIdfDecl($2,"Constante"); 
-							insererType($2 ,suavType,"Constante",1); 
+							insererType($2 ,sauvType,"Constante",1); 
 							insererVal($2,$4.val,$4.type); 
 						}
                         else  
@@ -138,7 +140,7 @@ DECLARATION_VARIABLE : TYPE LISTE_VAR
 						    if(doubleDeclaration($2)==0 ) 
 							{ 
 							    inserIdfDecl($2,"Tableau"); 
-								insererType($2,suavType,"Tableau",$4); 
+								insererType($2,sauvType,"Tableau",$4); 
 			                }
                             else 
 							{       
@@ -152,7 +154,7 @@ DECLARATION_VARIABLE : TYPE LISTE_VAR
 							    if( $4>0 )
 								{
              					    inserIdfDecl($2,"Tableau"); 
-									insererType($2,suavType,"Tableau",$4); 
+									insererType($2,sauvType,"Tableau",$4); 
 			                    }
 							    else 
 								{
@@ -166,8 +168,8 @@ DECLARATION_VARIABLE : TYPE LISTE_VAR
                         }  
 ;
 
-TYPE :    mc_int {strcpy(suavType,$1);}
-		| mc_float {strcpy(suavType,$1);}
+TYPE :    mc_int {strcpy(sauvType,$1);}
+		| mc_float {strcpy(sauvType,$1);}
 ;
 
 
@@ -177,7 +179,7 @@ LISTE_VAR : idf {p = NULL;} virgule LISTE_VAR
 								{ 
 									inserIdfDecl($1,"Variable"); 
 									empiler($1); 
-									while(p != NULL)  insererType(depiler(),suavType,"Variable",1); 
+									while(p != NULL)  insererType(depiler(),sauvType,"Variable",1); 
 								}
                                 else  
 								{      
@@ -189,7 +191,7 @@ LISTE_VAR : idf {p = NULL;} virgule LISTE_VAR
 			    if(doubleDeclaration($1)==0 )
 				{ 
 					inserIdfDecl($1,"Variable"); 
-					empiler($1); insererType(depiler(),suavType,"Variable",1);
+					empiler($1); insererType(depiler(),sauvType,"Variable",1);
 				}
                 else  
 				{       
@@ -201,15 +203,15 @@ LISTE_VAR : idf {p = NULL;} virgule LISTE_VAR
 
 
 VALUE : entier { $<EXP.type>$=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%d",$1);    $$.val=strdup(cstE);  $$.t=strdup(cstE);  }
-		|round_brackets_o entier_sign round_brackets_f{ $<EXP.type>$=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%d",$2);    $$.val=strdup(cstE);  $$.t=strdup(cstE);   }
+		|round_brackets_o entier_sign round_brackets_f { $<EXP.type>$=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%d",$2);    $$.val=strdup(cstE);  $$.t=strdup(cstE);   }
 		| reel  { $<EXP.type>$=strdup("FLOAT"); char cstReel[20]; 
-			int C = $1;		
-             sprintf(cstReel,"%d",C); 
+			 float C = $1;		
+             sprintf(cstReel,"%.3f",C); 
                $$.val=strdup(cstReel);
 			   $$.t=strdup(cstReel); }
 		| reel_sign  { $<EXP.type>$=strdup("FLOAT"); char cstReel[20];  
-		int C = $1;
-             sprintf(cstReel,"%d",C);  
+				float C = $1;
+             sprintf(cstReel,"%.3f",C);  
                $$.val=strdup(cstReel);  
 			   $$.t=strdup(cstReel);}
 ;
@@ -228,15 +230,28 @@ SIMPLE_INSTRUCTIONS :  LEFT_SIDE aff RIGHT_SIDE pnt_vir
 						{
                            if ( routineModifCst($1.val) != -1)
                             {  
-								if(strcmp($1.type,$3.type) != 0 )
+								
+								if (strcmp($1.type,"INTEGER") == 0 && strcmp($3.type,"FLOAT") == 0)	
 									{
 										printf("\nErreur semantique %d:%d, incompatibilite des types: type %s:%s  type %s:%s \n", line_number, Col,$1.val,$1.type,$3.val,$3.type);
 										_Exit(0);
 									}
-									else
+
+								if (strcmp($1.type,"FLOAT") == 0 && strcmp($3.type,"INTEGER") == 0)	
 									{
-										
-							            insererVal(sauvidf,$3.val,$3.type); 
+										 insererVal(sauvidf,$3.val,$1.type); 
+										createQuad("=",$3.t,"",$1.val);
+									}
+								
+								if (strcmp($1.type,"FLOAT") == 0 && strcmp($3.type,"INTEGER") == 0)	
+									{
+										 insererVal(sauvidf,$3.val,$1.type); 
+										createQuad("=",$3.t,"",$1.val);
+									}
+								
+								if (strcmp($1.type,"INTEGER") == 0 && strcmp($3.type,"INTEGER") == 0)	
+									{
+										 insererVal(sauvidf,$3.val,$1.type); 
 										createQuad("=",$3.t,"",$1.val);
 									}
 							}
@@ -272,13 +287,15 @@ LEFT_SIDE : idf
 
 RIGHT_SIDE : ELEMENT 
 			{  
-				$<EXP.type>$=strdup($1.type); $$.val=strdup($1.val) ; 
-				$$.t = strdup($1.val);
+				$<EXP.type>$=strdup($1.type);
+				$$.val=strdup($1.val); 
+				$$.t = strdup($1.t);
 			}
 						
 			| ELEMENT OPER RIGHT_SIDE  
 			{
-			    if(strcmp($1.type,$1.type) == 0)
+
+			    if(strcmp($1.type,$3.type) == 0)
 				{ 
 					$<EXP.type>$=strdup($1.type); 
 				}
@@ -286,14 +303,31 @@ RIGHT_SIDE : ELEMENT
 				{
 					$<EXP.type>$=strdup("FLOAT");
 				}
+
+
 				
 				strcpy(opr1,$1.val);
 				sprintf(temp, "T%d", ntemp); 
 				createQuad($2,opr1,$3.t,temp); 
 
-				double result=operationMath(atoi($1.val),$2, atoi($3.val));
+
+				if ($1.val == NULL || $1.val == NULL) {
+
+				}
+				double result=operationMath(atof($1.val),$2, atof($3.val));
 				char result_str[50];
-				sprintf(result_str, "%.3f", result);
+
+				double intpart;
+					double fracpart = modf(result, &intpart);
+
+					if (fracpart == 0.0) {
+						sprintf(result_str, "%.0f", result);
+						$<EXP.type>$=strdup("INTEGER");
+					} else {
+						sprintf(result_str, "%.3f", result);
+						$<EXP.type>$=strdup("FLOAT");				
+					}
+				
 				$$.val = strdup(result_str);
 				$$.t = strdup(temp);
 			    ntemp++;
@@ -316,9 +350,20 @@ RIGHT_SIDE : ELEMENT
 				strcpy(opr1,$2.val);
 				createQuad($4,opr1,$5.t,temp);
 				
-				double result=operationMath(atoi($2.val),$4, atoi($5.val));
+				double result=operationMath(atof($2.val),$4, atof($5.val));
 				char result_str[50];
-				sprintf(result_str, "%f", result);
+				
+				double intpart;
+					double fracpart = modf(result, &intpart);
+
+					if (fracpart == 0.0) {
+						sprintf(result_str, "%.0f", result);
+						$<EXP.type>$=strdup("INTEGER");
+					} else {
+						sprintf(result_str, "%.3f", result);
+						$<EXP.type>$=strdup("FLOAT");				
+					}	
+			
 				$$.val = strdup(result_str);
 				$$.t = strdup(temp);
 			    ntemp++;
@@ -335,7 +380,8 @@ RIGHT_SIDE : ELEMENT
 			/******************************************************************************************/
 			| round_brackets_o ELEMENT OPER RIGHT_SIDE round_brackets_f OPER RIGHT_SIDE
 			{
-				
+								
+
 				if(strcmp($2.type,$4.type) == 0 && strcmp($2.type,$7.type) == 0)
 				{ 
 					$<EXP.type>$=strdup($2.type); 
@@ -344,15 +390,7 @@ RIGHT_SIDE : ELEMENT
 				{
 					$<EXP.type>$=strdup("FLOAT");
 				}
-				
-           			if(strcmp($2.type,$4.type) == 0)
-					{ 
-						$<EXP.type>$=strdup($2.type); 
-					}
-					else 
-					{
-						$<EXP.type>$=strdup("FLOAT");
-					}	
+			
 					
 					sprintf(temp, "T%d", ntemp); 
 					strcpy(opr1,$2.val);
@@ -363,9 +401,23 @@ RIGHT_SIDE : ELEMENT
 					strcpy(opr1,$2.val);
 					createQuad($6,temp,$7.t,temp2);
 
-					double result=operationMath(atoi($2.val),$6, atoi($7.val));
+					
+					double result1 = operationMath(atof($2.val),$3, atof($4.val));
+
+					double result=operationMath(result1,$6, atof($7.val));
 					char result_str[50];
-				    sprintf(result_str, "%f", result);
+
+				    double intpart;
+					double fracpart = modf(result, &intpart);
+
+					if (fracpart == 0.0) {
+						sprintf(result_str, "%.0f", result);
+						$<EXP.type>$=strdup("INTEGER");
+					} else {
+						sprintf(result_str, "%.3f", result);
+						$<EXP.type>$=strdup("FLOAT");				
+					}
+
 				    $$.val = strdup(result_str);
 				    $$.t = strdup(temp2);
 			        ntemp++;
@@ -389,9 +441,21 @@ RIGHT_SIDE : ELEMENT
 					strcpy(opr1,$2.val);
 					createQuad($3,opr1,$4.t,temp);
 
-					double result=operationMath(atoi($2.val),$3, atoi($4.val));
+					double result=operationMath(atof($2.val),$3, atof($4.val));
 					char result_str[50];
-				    sprintf(result_str, "%f", result);
+				    
+
+					double intpart;
+					double fracpart = modf(result, &intpart);
+
+					if (fracpart == 0.0) {
+						sprintf(result_str, "%.0f", result);
+						$<EXP.type>$=strdup("INTEGER");
+					} else {
+						sprintf(result_str, "%.3f", result);
+						$<EXP.type>$=strdup("FLOAT");				
+					}
+
 				    $$.val = strdup(result_str);
 				    $$.t = strdup(temp);
 			        ntemp++;					
@@ -401,17 +465,28 @@ RIGHT_SIDE : ELEMENT
 ;
 
 
-ELEMENT :idf 
+ELEMENT : idf 
             {  
                 if(routinIdfDeclar($1) == 0)
 				{
                     afficheErreur($1 , 5);
 				}
+
+
+				
+				
+				char value[15];
+				if (getValueFromIdf($1,value) <= 0) {
+					printf("\n Error");
+					_Exit(0);
+				};
+				printf("\n Len %zu",strlen(value));
                 char t2[12];
                 typeDeIdf(t2,$1);
+				
                 $<EXP.type>$=strdup(t2);
-				$$.val=strdup($1) ;
-				$$.t=strdup($1) ;
+				$$.val=strdup(value) ;
+				$$.t=strdup(value) ;
 			}
 			
 		/******************************************************************************************/

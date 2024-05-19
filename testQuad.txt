@@ -2,20 +2,15 @@ VAR_GLOBAL{
 	
 }
 DECLARATION{ 
-     INTEGER A , i , N , X , B;
+     INTEGER  A,i ,  X , B;
      INTEGER D=5;
+     FLOAT N;
     }
 
 INSTRUCTION{
-     
-		A = 0;
-
-			A = A + 1;
-            A= 2 * 3;
-            A= 10/5;
-               X= 5 + 2;	
-            A = (X+ 7+B) /( 5.3 - (-2) );
-
+        N= 32;
+        N= (X + 3)  / (5 + 2);
+        A= A + 2;
 		
 		%% Resultat A = 6
 }

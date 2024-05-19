@@ -281,12 +281,15 @@ void insererType(char entites[], char typ[], char nature[], int taille)
 }
 
 double operationMath(double a, const char* op, double b) {
+
+	
     switch (op[0]) {
-        case '+': return a + b;
-        case '-': return a - b;
-        case '*': return a * b;
+        case '+': {return a + b;};
+        case '-': {return a - b;};
+        case '*': {return a * b;};
         case '/':
             if (b != 0) {
+				
                 return a / b;
             } else {
                 fprintf(stderr, "Erreur Sémantique: division par zéro\n");
@@ -297,6 +300,28 @@ double operationMath(double a, const char* op, double b) {
             return 0; 
     }
 }
+
+
+int getValueFromIdf(char *nom_entite,char *out) {
+
+  int hach = hachage(nom_entite);
+  entite *ptr = TableHachage[hach].tete;
+
+  while (ptr != NULL) {
+    if (strcmp(ptr->nom, nom_entite) == 0) {
+		
+		if (strlen(ptr->valeur) <= 0) {
+			return 0;
+		}
+		strcpy(out,ptr->valeur);
+        return 1;
+    }
+    ptr = ptr->svt;
+  }
+
+  return 0; 
+}
+
 
 
 int compare(double left, const char* cmp, double right) {

@@ -105,7 +105,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 39 "syntaxique.y"
+#line 41 "syntaxique.y"
 
 int num;
 float real;

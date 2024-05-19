@@ -69,6 +69,8 @@
 /* First part of user prologue.  */
 #line 1 "syntaxique.y"
 
+
+	#include "math.h"	
 	#include "quad.c"
 	#include <stddef.h>
 	#include <stdio.h>
@@ -85,8 +87,8 @@
 	char temp [20];
 	char temp2 [20];
 	char temp3 [20];
-	char suavT [20];
-	char suavType [20];
+	char sauvT [20];
+	char sauvType [20];
 	char* sauvidf; 
 	char * out;
 	char opr1 [20];
@@ -105,7 +107,7 @@
 
 
 
-#line 109 "syntaxique.tab.c"
+#line 111 "syntaxique.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -598,14 +600,14 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    83,    83,    88,    89,    92,    93,    96,    98,   121,
-     136,   148,   169,   170,   174,   174,   187,   203,   204,   205,
-     210,   219,   220,   221,   227,   247,   262,   273,   279,   305,
-     330,   336,   377,   404,   418,   421,   425,   426,   427,   428,
-     431,   448,   459,   466,   465,   473,   472,   509,   513,   508,
-     524,   525,   529,   530,   534,   535,   538,   538,   547,   553,
-     568,   588,   607,   619,   635,   654,   678,   696,   724,   725,
-     726,   727,   728,   729,   732,   733
+       0,    85,    85,    90,    91,    94,    95,    98,   100,   123,
+     138,   150,   171,   172,   176,   176,   189,   205,   206,   207,
+     212,   221,   222,   223,   229,   262,   277,   288,   295,   339,
+     375,   381,   429,   468,   493,   496,   500,   501,   502,   503,
+     506,   523,   534,   541,   540,   548,   547,   584,   588,   583,
+     599,   600,   604,   605,   609,   610,   613,   613,   622,   628,
+     643,   663,   682,   694,   710,   729,   753,   771,   799,   800,
+     801,   802,   803,   804,   807,   808
 };
 #endif
 
@@ -1277,24 +1279,24 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* S: mc_var curly_brackets_o GLOBAL_DECLARATIONS curly_brackets_f mc_dec curly_brackets_o LOCAL_DECLARATIONS curly_brackets_f mc_inst curly_brackets_o PARTIE_CODE curly_brackets_f  */
-#line 84 "syntaxique.y"
+#line 86 "syntaxique.y"
 { printf ("\n\nProgramme syntaxiquement correcte\n\n"); YYACCEPT; }
-#line 1283 "syntaxique.tab.c"
+#line 1285 "syntaxique.tab.c"
     break;
 
   case 8: /* DECLARATION_VARIABLE: TYPE idf aff VALUE  */
-#line 99 "syntaxique.y"
+#line 101 "syntaxique.y"
                                            { 
 						   if(doubleDeclaration((yyvsp[-2].str))==0 ) 
 							{  
-									if(strcmp(suavType, (yyvsp[0].EXP).type) != 0) 
+									if(strcmp(sauvType, (yyvsp[0].EXP).type) != 0) 
 									{
 										afficheErreur( (yyvsp[-2].str) , 2);
 									}
 									else 
 									{      
 										inserIdfDecl((yyvsp[-2].str),"Variable"); 
-										insererType((yyvsp[-2].str),suavType,"Variable",1); // taille de ifd = 1
+										insererType((yyvsp[-2].str),sauvType,"Variable",1); // taille de ifd = 1
 							            insererVal((yyvsp[-2].str),(yyvsp[0].EXP).val,(yyvsp[0].EXP).type); 
 										createQuad("=",(yyvsp[0].EXP).t,"",(yyvsp[-2].str));
 									}
@@ -1305,16 +1307,16 @@ yyreduce:
 								afficheErreur((yyvsp[-2].str) , 1); 
 							}
 						}
-#line 1309 "syntaxique.tab.c"
+#line 1311 "syntaxique.tab.c"
     break;
 
   case 9: /* DECLARATION_VARIABLE: mc_const idf aff VALUE  */
-#line 123 "syntaxique.y"
+#line 125 "syntaxique.y"
                                     { 
 					    if(doubleDeclaration((yyvsp[-2].str))==0 ) 
 						{ 
 							inserIdfDecl((yyvsp[-2].str),"Constante"); 
-							insererType((yyvsp[-2].str) ,suavType,"Constante",1); 
+							insererType((yyvsp[-2].str) ,sauvType,"Constante",1); 
 							insererVal((yyvsp[-2].str),(yyvsp[0].EXP).val,(yyvsp[0].EXP).type); 
 						}
                         else  
@@ -1322,34 +1324,34 @@ yyreduce:
                             afficheErreur((yyvsp[-2].str) , 1); 
 					    }   
 					}
-#line 1326 "syntaxique.tab.c"
+#line 1328 "syntaxique.tab.c"
     break;
 
   case 10: /* DECLARATION_VARIABLE: TYPE idf square_brackets_o entier square_brackets_f  */
-#line 137 "syntaxique.y"
+#line 139 "syntaxique.y"
                         { 
 						    if(doubleDeclaration((yyvsp[-3].str))==0 ) 
 							{ 
 							    inserIdfDecl((yyvsp[-3].str),"Tableau"); 
-								insererType((yyvsp[-3].str),suavType,"Tableau",(yyvsp[-1].num)); 
+								insererType((yyvsp[-3].str),sauvType,"Tableau",(yyvsp[-1].num)); 
 			                }
                             else 
 							{       
                                 afficheErreur((yyvsp[-3].str) , 1);
 			                }
                         }
-#line 1342 "syntaxique.tab.c"
+#line 1344 "syntaxique.tab.c"
     break;
 
   case 11: /* DECLARATION_VARIABLE: TYPE idf square_brackets_o entier_sign square_brackets_f  */
-#line 149 "syntaxique.y"
+#line 151 "syntaxique.y"
                                             { 
 						    if(doubleDeclaration((yyvsp[-3].str))==0 ) 
 							{ 
 							    if( (yyvsp[-1].num)>0 )
 								{
              					    inserIdfDecl((yyvsp[-3].str),"Tableau"); 
-									insererType((yyvsp[-3].str),suavType,"Tableau",(yyvsp[-1].num)); 
+									insererType((yyvsp[-3].str),sauvType,"Tableau",(yyvsp[-1].num)); 
 			                    }
 							    else 
 								{
@@ -1361,115 +1363,128 @@ yyreduce:
                                 afficheErreur((yyvsp[-3].str) , 1);
 				            }
                         }
-#line 1365 "syntaxique.tab.c"
+#line 1367 "syntaxique.tab.c"
     break;
 
   case 12: /* TYPE: mc_int  */
-#line 169 "syntaxique.y"
-                 {strcpy(suavType,(yyvsp[0].str));}
-#line 1371 "syntaxique.tab.c"
+#line 171 "syntaxique.y"
+                 {strcpy(sauvType,(yyvsp[0].str));}
+#line 1373 "syntaxique.tab.c"
     break;
 
   case 13: /* TYPE: mc_float  */
-#line 170 "syntaxique.y"
-                           {strcpy(suavType,(yyvsp[0].str));}
-#line 1377 "syntaxique.tab.c"
+#line 172 "syntaxique.y"
+                           {strcpy(sauvType,(yyvsp[0].str));}
+#line 1379 "syntaxique.tab.c"
     break;
 
   case 14: /* $@1: %empty  */
-#line 174 "syntaxique.y"
+#line 176 "syntaxique.y"
                 {p = NULL;}
-#line 1383 "syntaxique.tab.c"
+#line 1385 "syntaxique.tab.c"
     break;
 
   case 15: /* LISTE_VAR: idf $@1 virgule LISTE_VAR  */
-#line 175 "syntaxique.y"
+#line 177 "syntaxique.y"
                                                     { 
 							    if(doubleDeclaration((yyvsp[-3].str))==0 )
 								{ 
 									inserIdfDecl((yyvsp[-3].str),"Variable"); 
 									empiler((yyvsp[-3].str)); 
-									while(p != NULL)  insererType(depiler(),suavType,"Variable",1); 
+									while(p != NULL)  insererType(depiler(),sauvType,"Variable",1); 
 								}
                                 else  
 								{      
                                     afficheErreur((yyvsp[-3].str) , 1); 
 							    }
 							}
-#line 1400 "syntaxique.tab.c"
+#line 1402 "syntaxique.tab.c"
     break;
 
   case 16: /* LISTE_VAR: idf  */
-#line 188 "syntaxique.y"
+#line 190 "syntaxique.y"
                         { 
 			    if(doubleDeclaration((yyvsp[0].str))==0 )
 				{ 
 					inserIdfDecl((yyvsp[0].str),"Variable"); 
-					empiler((yyvsp[0].str)); insererType(depiler(),suavType,"Variable",1);
+					empiler((yyvsp[0].str)); insererType(depiler(),sauvType,"Variable",1);
 				}
                 else  
 				{       
                     afficheErreur((yyvsp[0].str) , 1 ); 
 			    }
 			}
-#line 1416 "syntaxique.tab.c"
+#line 1418 "syntaxique.tab.c"
     break;
 
   case 17: /* VALUE: entier  */
-#line 203 "syntaxique.y"
+#line 205 "syntaxique.y"
                { (yyval.EXP.type)=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%d",(yyvsp[0].num));    (yyval.EXP).val=strdup(cstE);  (yyval.EXP).t=strdup(cstE);  }
-#line 1422 "syntaxique.tab.c"
+#line 1424 "syntaxique.tab.c"
     break;
 
   case 18: /* VALUE: round_brackets_o entier_sign round_brackets_f  */
-#line 204 "syntaxique.y"
-                                                              { (yyval.EXP.type)=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%d",(yyvsp[-1].num));    (yyval.EXP).val=strdup(cstE);  (yyval.EXP).t=strdup(cstE);   }
-#line 1428 "syntaxique.tab.c"
+#line 206 "syntaxique.y"
+                                                               { (yyval.EXP.type)=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%d",(yyvsp[-1].num));    (yyval.EXP).val=strdup(cstE);  (yyval.EXP).t=strdup(cstE);   }
+#line 1430 "syntaxique.tab.c"
     break;
 
   case 19: /* VALUE: reel  */
-#line 205 "syntaxique.y"
+#line 207 "syntaxique.y"
                         { (yyval.EXP.type)=strdup("FLOAT"); char cstReel[20]; 
-			int C = (yyvsp[0].real);		
-             sprintf(cstReel,"%d",C); 
+			 float C = (yyvsp[0].real);		
+             sprintf(cstReel,"%.3f",C); 
                (yyval.EXP).val=strdup(cstReel);
 			   (yyval.EXP).t=strdup(cstReel); }
-#line 1438 "syntaxique.tab.c"
+#line 1440 "syntaxique.tab.c"
     break;
 
   case 20: /* VALUE: reel_sign  */
-#line 210 "syntaxique.y"
+#line 212 "syntaxique.y"
                              { (yyval.EXP.type)=strdup("FLOAT"); char cstReel[20];  
-		int C = (yyvsp[0].real);
-             sprintf(cstReel,"%d",C);  
+				float C = (yyvsp[0].real);
+             sprintf(cstReel,"%.3f",C);  
                (yyval.EXP).val=strdup(cstReel);  
 			   (yyval.EXP).t=strdup(cstReel);}
-#line 1448 "syntaxique.tab.c"
+#line 1450 "syntaxique.tab.c"
     break;
 
   case 24: /* SIMPLE_INSTRUCTIONS: LEFT_SIDE aff RIGHT_SIDE pnt_vir  */
-#line 228 "syntaxique.y"
+#line 230 "syntaxique.y"
                                                 {
                            if ( routineModifCst((yyvsp[-3].EXP).val) != -1)
                             {  
-								if(strcmp((yyvsp[-3].EXP).type,(yyvsp[-1].EXP).type) != 0 )
+								
+								if (strcmp((yyvsp[-3].EXP).type,"INTEGER") == 0 && strcmp((yyvsp[-1].EXP).type,"FLOAT") == 0)	
 									{
 										printf("\nErreur semantique %d:%d, incompatibilite des types: type %s:%s  type %s:%s \n", line_number, Col,(yyvsp[-3].EXP).val,(yyvsp[-3].EXP).type,(yyvsp[-1].EXP).val,(yyvsp[-1].EXP).type);
 										_Exit(0);
 									}
-									else
+
+								if (strcmp((yyvsp[-3].EXP).type,"FLOAT") == 0 && strcmp((yyvsp[-1].EXP).type,"INTEGER") == 0)	
 									{
-										
-							            insererVal(sauvidf,(yyvsp[-1].EXP).val,(yyvsp[-1].EXP).type); 
+										 insererVal(sauvidf,(yyvsp[-1].EXP).val,(yyvsp[-3].EXP).type); 
+										createQuad("=",(yyvsp[-1].EXP).t,"",(yyvsp[-3].EXP).val);
+									}
+								
+								if (strcmp((yyvsp[-3].EXP).type,"FLOAT") == 0 && strcmp((yyvsp[-1].EXP).type,"INTEGER") == 0)	
+									{
+										 insererVal(sauvidf,(yyvsp[-1].EXP).val,(yyvsp[-3].EXP).type); 
+										createQuad("=",(yyvsp[-1].EXP).t,"",(yyvsp[-3].EXP).val);
+									}
+								
+								if (strcmp((yyvsp[-3].EXP).type,"INTEGER") == 0 && strcmp((yyvsp[-1].EXP).type,"INTEGER") == 0)	
+									{
+										 insererVal(sauvidf,(yyvsp[-1].EXP).val,(yyvsp[-3].EXP).type); 
 										createQuad("=",(yyvsp[-1].EXP).t,"",(yyvsp[-3].EXP).val);
 									}
 							}
 						}
-#line 1469 "syntaxique.tab.c"
+#line 1484 "syntaxique.tab.c"
     break;
 
   case 25: /* LEFT_SIDE: idf  */
-#line 248 "syntaxique.y"
+#line 263 "syntaxique.y"
                                 {  
 					if(routinIdfDeclar((yyvsp[0].str)) == 0)
 					{
@@ -1484,33 +1499,35 @@ yyreduce:
 					
 					   
 				}
-#line 1488 "syntaxique.tab.c"
+#line 1503 "syntaxique.tab.c"
     break;
 
   case 26: /* LEFT_SIDE: case  */
-#line 263 "syntaxique.y"
+#line 278 "syntaxique.y"
                             {   
 				    (yyval.EXP.type)=strdup((yyvsp[0].EXP).type); 
 					(yyval.EXP).val=strdup((yyvsp[0].EXP).val) ; 
 					(yyval.EXP).t=strdup((yyvsp[0].EXP).val) ;
 					
 				}
-#line 1499 "syntaxique.tab.c"
+#line 1514 "syntaxique.tab.c"
     break;
 
   case 27: /* RIGHT_SIDE: ELEMENT  */
-#line 274 "syntaxique.y"
+#line 289 "syntaxique.y"
                         {  
-				(yyval.EXP.type)=strdup((yyvsp[0].EXP).type); (yyval.EXP).val=strdup((yyvsp[0].EXP).val) ; 
-				(yyval.EXP).t = strdup((yyvsp[0].EXP).val);
+				(yyval.EXP.type)=strdup((yyvsp[0].EXP).type);
+				(yyval.EXP).val=strdup((yyvsp[0].EXP).val); 
+				(yyval.EXP).t = strdup((yyvsp[0].EXP).t);
 			}
-#line 1508 "syntaxique.tab.c"
+#line 1524 "syntaxique.tab.c"
     break;
 
   case 28: /* RIGHT_SIDE: ELEMENT OPER RIGHT_SIDE  */
-#line 280 "syntaxique.y"
+#line 296 "syntaxique.y"
                         {
-			    if(strcmp((yyvsp[-2].EXP).type,(yyvsp[-2].EXP).type) == 0)
+
+			    if(strcmp((yyvsp[-2].EXP).type,(yyvsp[0].EXP).type) == 0)
 				{ 
 					(yyval.EXP.type)=strdup((yyvsp[-2].EXP).type); 
 				}
@@ -1518,24 +1535,41 @@ yyreduce:
 				{
 					(yyval.EXP.type)=strdup("FLOAT");
 				}
+
+
 				
 				strcpy(opr1,(yyvsp[-2].EXP).val);
 				sprintf(temp, "T%d", ntemp); 
 				createQuad((yyvsp[-1].str),opr1,(yyvsp[0].EXP).t,temp); 
 
-				double result=operationMath(atoi((yyvsp[-2].EXP).val),(yyvsp[-1].str), atoi((yyvsp[0].EXP).val));
+
+				if ((yyvsp[-2].EXP).val == NULL || (yyvsp[-2].EXP).val == NULL) {
+
+				}
+				double result=operationMath(atof((yyvsp[-2].EXP).val),(yyvsp[-1].str), atof((yyvsp[0].EXP).val));
 				char result_str[50];
-				sprintf(result_str, "%.3f", result);
+
+				double intpart;
+					double fracpart = modf(result, &intpart);
+
+					if (fracpart == 0.0) {
+						sprintf(result_str, "%.0f", result);
+						(yyval.EXP.type)=strdup("INTEGER");
+					} else {
+						sprintf(result_str, "%.3f", result);
+						(yyval.EXP.type)=strdup("FLOAT");				
+					}
+				
 				(yyval.EXP).val = strdup(result_str);
 				(yyval.EXP).t = strdup(temp);
 			    ntemp++;
 				
 			}
-#line 1535 "syntaxique.tab.c"
+#line 1569 "syntaxique.tab.c"
     break;
 
   case 29: /* RIGHT_SIDE: round_brackets_o ELEMENT round_brackets_f OPER RIGHT_SIDE  */
-#line 306 "syntaxique.y"
+#line 340 "syntaxique.y"
                         {  
 				if(strcmp((yyvsp[-3].EXP).type,(yyvsp[0].EXP).type) == 0)
 				{ 
@@ -1549,29 +1583,41 @@ yyreduce:
 				strcpy(opr1,(yyvsp[-3].EXP).val);
 				createQuad((yyvsp[-1].str),opr1,(yyvsp[0].EXP).t,temp);
 				
-				double result=operationMath(atoi((yyvsp[-3].EXP).val),(yyvsp[-1].str), atoi((yyvsp[0].EXP).val));
+				double result=operationMath(atof((yyvsp[-3].EXP).val),(yyvsp[-1].str), atof((yyvsp[0].EXP).val));
 				char result_str[50];
-				sprintf(result_str, "%f", result);
+				
+				double intpart;
+					double fracpart = modf(result, &intpart);
+
+					if (fracpart == 0.0) {
+						sprintf(result_str, "%.0f", result);
+						(yyval.EXP.type)=strdup("INTEGER");
+					} else {
+						sprintf(result_str, "%.3f", result);
+						(yyval.EXP.type)=strdup("FLOAT");				
+					}	
+			
 				(yyval.EXP).val = strdup(result_str);
 				(yyval.EXP).t = strdup(temp);
 			    ntemp++;
 				
 			}
-#line 1561 "syntaxique.tab.c"
+#line 1606 "syntaxique.tab.c"
     break;
 
   case 30: /* RIGHT_SIDE: round_brackets_o ELEMENT round_brackets_f  */
-#line 331 "syntaxique.y"
+#line 376 "syntaxique.y"
                         {  
 				(yyval.EXP.type)=strdup((yyvsp[-1].EXP).type); (yyval.EXP).val=strdup((yyvsp[-1].EXP).val) ; (yyval.EXP).t = strdup((yyvsp[-1].EXP).val);	
 			}
-#line 1569 "syntaxique.tab.c"
+#line 1614 "syntaxique.tab.c"
     break;
 
   case 31: /* RIGHT_SIDE: round_brackets_o ELEMENT OPER RIGHT_SIDE round_brackets_f OPER RIGHT_SIDE  */
-#line 337 "syntaxique.y"
+#line 382 "syntaxique.y"
                         {
-				
+								
+
 				if(strcmp((yyvsp[-5].EXP).type,(yyvsp[-3].EXP).type) == 0 && strcmp((yyvsp[-5].EXP).type,(yyvsp[0].EXP).type) == 0)
 				{ 
 					(yyval.EXP.type)=strdup((yyvsp[-5].EXP).type); 
@@ -1580,15 +1626,7 @@ yyreduce:
 				{
 					(yyval.EXP.type)=strdup("FLOAT");
 				}
-				
-           			if(strcmp((yyvsp[-5].EXP).type,(yyvsp[-3].EXP).type) == 0)
-					{ 
-						(yyval.EXP.type)=strdup((yyvsp[-5].EXP).type); 
-					}
-					else 
-					{
-						(yyval.EXP.type)=strdup("FLOAT");
-					}	
+			
 					
 					sprintf(temp, "T%d", ntemp); 
 					strcpy(opr1,(yyvsp[-5].EXP).val);
@@ -1599,20 +1637,34 @@ yyreduce:
 					strcpy(opr1,(yyvsp[-5].EXP).val);
 					createQuad((yyvsp[-1].str),temp,(yyvsp[0].EXP).t,temp2);
 
-					double result=operationMath(atoi((yyvsp[-5].EXP).val),(yyvsp[-1].str), atoi((yyvsp[0].EXP).val));
+					
+					double result1 = operationMath(atof((yyvsp[-5].EXP).val),(yyvsp[-4].str), atof((yyvsp[-3].EXP).val));
+
+					double result=operationMath(result1,(yyvsp[-1].str), atof((yyvsp[0].EXP).val));
 					char result_str[50];
-				    sprintf(result_str, "%f", result);
+
+				    double intpart;
+					double fracpart = modf(result, &intpart);
+
+					if (fracpart == 0.0) {
+						sprintf(result_str, "%.0f", result);
+						(yyval.EXP.type)=strdup("INTEGER");
+					} else {
+						sprintf(result_str, "%.3f", result);
+						(yyval.EXP.type)=strdup("FLOAT");				
+					}
+
 				    (yyval.EXP).val = strdup(result_str);
 				    (yyval.EXP).t = strdup(temp2);
 			        ntemp++;
 				
 										
 			}
-#line 1612 "syntaxique.tab.c"
+#line 1664 "syntaxique.tab.c"
     break;
 
   case 32: /* RIGHT_SIDE: round_brackets_o ELEMENT OPER RIGHT_SIDE round_brackets_f  */
-#line 378 "syntaxique.y"
+#line 430 "syntaxique.y"
                         {
 				    if(strcmp((yyvsp[-3].EXP).type,(yyvsp[-1].EXP).type) == 0)
 					{ 
@@ -1627,46 +1679,69 @@ yyreduce:
 					strcpy(opr1,(yyvsp[-3].EXP).val);
 					createQuad((yyvsp[-2].str),opr1,(yyvsp[-1].EXP).t,temp);
 
-					double result=operationMath(atoi((yyvsp[-3].EXP).val),(yyvsp[-2].str), atoi((yyvsp[-1].EXP).val));
+					double result=operationMath(atof((yyvsp[-3].EXP).val),(yyvsp[-2].str), atof((yyvsp[-1].EXP).val));
 					char result_str[50];
-				    sprintf(result_str, "%f", result);
+				    
+
+					double intpart;
+					double fracpart = modf(result, &intpart);
+
+					if (fracpart == 0.0) {
+						sprintf(result_str, "%.0f", result);
+						(yyval.EXP.type)=strdup("INTEGER");
+					} else {
+						sprintf(result_str, "%.3f", result);
+						(yyval.EXP.type)=strdup("FLOAT");				
+					}
+
 				    (yyval.EXP).val = strdup(result_str);
 				    (yyval.EXP).t = strdup(temp);
 			        ntemp++;					
 			}
-#line 1638 "syntaxique.tab.c"
+#line 1702 "syntaxique.tab.c"
     break;
 
   case 33: /* ELEMENT: idf  */
-#line 405 "syntaxique.y"
+#line 469 "syntaxique.y"
             {  
                 if(routinIdfDeclar((yyvsp[0].str)) == 0)
 				{
                     afficheErreur((yyvsp[0].str) , 5);
 				}
+
+
+				
+				
+				char value[15];
+				if (getValueFromIdf((yyvsp[0].str),value) <= 0) {
+					printf("\n Error");
+					_Exit(0);
+				};
+				printf("\n Len %zu",strlen(value));
                 char t2[12];
                 typeDeIdf(t2,(yyvsp[0].str));
+				
                 (yyval.EXP.type)=strdup(t2);
-				(yyval.EXP).val=strdup((yyvsp[0].str)) ;
-				(yyval.EXP).t=strdup((yyvsp[0].str)) ;
+				(yyval.EXP).val=strdup(value) ;
+				(yyval.EXP).t=strdup(value) ;
 			}
-#line 1654 "syntaxique.tab.c"
+#line 1729 "syntaxique.tab.c"
     break;
 
   case 34: /* ELEMENT: case  */
-#line 418 "syntaxique.y"
+#line 493 "syntaxique.y"
                        {   (yyval.EXP.type)=strdup((yyvsp[0].EXP).type); (yyval.EXP).val=strdup((yyvsp[0].EXP).val) ;(yyval.EXP).t=strdup((yyvsp[0].EXP).val) ;  }
-#line 1660 "syntaxique.tab.c"
+#line 1735 "syntaxique.tab.c"
     break;
 
   case 35: /* ELEMENT: VALUE  */
-#line 421 "syntaxique.y"
+#line 496 "syntaxique.y"
                 {   (yyval.EXP.type)=strdup((yyvsp[0].EXP).type); (yyval.EXP).val=strdup((yyvsp[0].EXP).val) ; (yyval.EXP).t=strdup((yyvsp[0].EXP).val) ; }
-#line 1666 "syntaxique.tab.c"
+#line 1741 "syntaxique.tab.c"
     break;
 
   case 40: /* case: idf square_brackets_o var square_brackets_f  */
-#line 432 "syntaxique.y"
+#line 507 "syntaxique.y"
         {  
 		    if(routinIdfDeclar((yyvsp[-3].str)) == 0) 
 			{
@@ -1682,11 +1757,11 @@ yyreduce:
 			(yyval.EXP).t = strdup(Tmp);
 
         }
-#line 1686 "syntaxique.tab.c"
+#line 1761 "syntaxique.tab.c"
     break;
 
   case 41: /* var: idf  */
-#line 449 "syntaxique.y"
+#line 524 "syntaxique.y"
         { 
 		    if(routinIdfDeclar((yyvsp[0].str)) == 0)
 			{
@@ -1697,25 +1772,25 @@ yyreduce:
 			    (yyval.str)=strdup((yyvsp[0].str));
             }
         }
-#line 1701 "syntaxique.tab.c"
+#line 1776 "syntaxique.tab.c"
     break;
 
   case 42: /* var: entier  */
-#line 459 "syntaxique.y"
+#line 534 "syntaxique.y"
              { valTab=(yyvsp[0].num) ; char cstNat[15];  sprintf(cstNat,"%d",(yyvsp[0].num)); (yyval.str)=strdup(cstNat); }
-#line 1707 "syntaxique.tab.c"
+#line 1782 "syntaxique.tab.c"
     break;
 
   case 43: /* $@2: %empty  */
-#line 466 "syntaxique.y"
+#line 541 "syntaxique.y"
                                                 {
 							qcT=qc;createQuad("BZ","",liste[qc-1].res,"");
 						}
-#line 1715 "syntaxique.tab.c"
+#line 1790 "syntaxique.tab.c"
     break;
 
   case 45: /* $@3: %empty  */
-#line 473 "syntaxique.y"
+#line 548 "syntaxique.y"
                                                 {
 						
 							if(routinIdfDeclar((yyvsp[-7].str)) == 0)
@@ -1740,11 +1815,11 @@ yyreduce:
 							createQuad("BZ","",temp3,"");
 							
 						}
-#line 1744 "syntaxique.tab.c"
+#line 1819 "syntaxique.tab.c"
     break;
 
   case 46: /* COMPLEX_INSTRUCTIONS: mc_for round_brackets_o idf double_pnt INIT_FINISH double_pnt entier double_pnt INIT_FINISH round_brackets_f $@3 curly_brackets_o PARTIE_CODE curly_brackets_f  */
-#line 498 "syntaxique.y"
+#line 573 "syntaxique.y"
                                                     {
 								sprintf(temp, "T%d", ntemp);
 								createQuad("+",(yyvsp[-11].str),convert((yyvsp[-7].num)),temp);
@@ -1753,65 +1828,65 @@ yyreduce:
 						        createQuad("BR",convert(qcT),"","");
 								liste[qct2].op1=convert(qc);
 						    }
-#line 1757 "syntaxique.tab.c"
+#line 1832 "syntaxique.tab.c"
     break;
 
   case 47: /* $@4: %empty  */
-#line 509 "syntaxique.y"
+#line 584 "syntaxique.y"
                                                 {
 							qcT=qc;
 						}
-#line 1765 "syntaxique.tab.c"
+#line 1840 "syntaxique.tab.c"
     break;
 
   case 48: /* $@5: %empty  */
-#line 513 "syntaxique.y"
+#line 588 "syntaxique.y"
                                                 {
 							qct2=qc;
 							createQuad("BZ","",liste[qc-1].res,"");
 							
 						}
-#line 1775 "syntaxique.tab.c"
+#line 1850 "syntaxique.tab.c"
     break;
 
   case 49: /* COMPLEX_INSTRUCTIONS: mc_while round_brackets_o $@4 CONDITION round_brackets_f $@5 curly_brackets_o PARTIE_CODE curly_brackets_f  */
-#line 519 "syntaxique.y"
+#line 594 "syntaxique.y"
                                                 {
 							createQuad("BR",convert(qcT),"","");
 							liste[qct2].op1=convert(qc);
 						}
-#line 1784 "syntaxique.tab.c"
+#line 1859 "syntaxique.tab.c"
     break;
 
   case 56: /* $@6: %empty  */
-#line 538 "syntaxique.y"
+#line 613 "syntaxique.y"
         {
 			liste[qcT].op1=convert(qc+1);
 			qcElse=qc;
 			createQuad("BR","","","");
 		}
-#line 1794 "syntaxique.tab.c"
+#line 1869 "syntaxique.tab.c"
     break;
 
   case 57: /* ELSE: $@6 mc_else curly_brackets_o PARTIE_CODE curly_brackets_f  */
-#line 544 "syntaxique.y"
+#line 619 "syntaxique.y"
                 {
 			liste[qcElse].op1=convert(qc);
 		}
-#line 1802 "syntaxique.tab.c"
+#line 1877 "syntaxique.tab.c"
     break;
 
   case 58: /* ELSE: %empty  */
-#line 547 "syntaxique.y"
+#line 622 "syntaxique.y"
                   {
 			liste[qcT].op1=convert(qc);
 
 		}
-#line 1811 "syntaxique.tab.c"
+#line 1886 "syntaxique.tab.c"
     break;
 
   case 59: /* CONDITION: RIGHT_SIDE CMP RIGHT_SIDE  */
-#line 554 "syntaxique.y"
+#line 629 "syntaxique.y"
                         {
 
 
@@ -1825,11 +1900,11 @@ yyreduce:
 
 
 			}
-#line 1829 "syntaxique.tab.c"
+#line 1904 "syntaxique.tab.c"
     break;
 
   case 60: /* CONDITION: RIGHT_SIDE CMP RIGHT_SIDE and CONDITION  */
-#line 569 "syntaxique.y"
+#line 644 "syntaxique.y"
                         {
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi((yyvsp[-3].EXP).val),(yyvsp[-4].EXP).val,(yyvsp[-2].EXP).val,temp);
@@ -1847,11 +1922,11 @@ yyreduce:
 				(yyval.EXP).t = strdup(temp2);
 				ntemp++;
 			}
-#line 1851 "syntaxique.tab.c"
+#line 1926 "syntaxique.tab.c"
     break;
 
   case 61: /* CONDITION: RIGHT_SIDE CMP RIGHT_SIDE or CONDITION  */
-#line 589 "syntaxique.y"
+#line 664 "syntaxique.y"
                         {
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi((yyvsp[-3].EXP).val),(yyvsp[-4].EXP).val,(yyvsp[-2].EXP).val,temp);
@@ -1868,11 +1943,11 @@ yyreduce:
 				(yyval.EXP).t = strdup(temp2);
 				ntemp++;
 			}
-#line 1872 "syntaxique.tab.c"
+#line 1947 "syntaxique.tab.c"
     break;
 
   case 62: /* CONDITION: round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f  */
-#line 608 "syntaxique.y"
+#line 683 "syntaxique.y"
                         {
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi((yyvsp[-2].EXP).val),(yyvsp[-3].EXP).val,(yyvsp[-1].EXP).val,temp);
@@ -1882,11 +1957,11 @@ yyreduce:
 				(yyval.EXP).t = strdup(temp);
 				ntemp++;
 			}
-#line 1886 "syntaxique.tab.c"
+#line 1961 "syntaxique.tab.c"
     break;
 
   case 63: /* CONDITION: negation round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f  */
-#line 620 "syntaxique.y"
+#line 695 "syntaxique.y"
                         {
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi((yyvsp[-2].EXP).val),(yyvsp[-3].EXP).val,(yyvsp[-1].EXP).val,temp);
@@ -1901,11 +1976,11 @@ yyreduce:
 				(yyval.EXP).t = strdup(temp2);
 				ntemp++;
 			}
-#line 1905 "syntaxique.tab.c"
+#line 1980 "syntaxique.tab.c"
     break;
 
   case 64: /* CONDITION: round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f and CONDITION  */
-#line 636 "syntaxique.y"
+#line 711 "syntaxique.y"
                         {
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi((yyvsp[-4].EXP).val),(yyvsp[-5].EXP).val,(yyvsp[-3].EXP).val,temp);
@@ -1923,11 +1998,11 @@ yyreduce:
 				(yyval.EXP).t = strdup(temp2);
 				ntemp++;
 			}
-#line 1927 "syntaxique.tab.c"
+#line 2002 "syntaxique.tab.c"
     break;
 
   case 65: /* CONDITION: negation round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f and CONDITION  */
-#line 655 "syntaxique.y"
+#line 730 "syntaxique.y"
                         {
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi((yyvsp[-4].EXP).val),(yyvsp[-5].EXP).val,(yyvsp[-3].EXP).val,temp);
@@ -1950,11 +2025,11 @@ yyreduce:
 				(yyval.EXP).t = strdup(temp3);
 				ntemp++;
 			}
-#line 1954 "syntaxique.tab.c"
+#line 2029 "syntaxique.tab.c"
     break;
 
   case 66: /* CONDITION: round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f or CONDITION  */
-#line 679 "syntaxique.y"
+#line 754 "syntaxique.y"
                         {
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi((yyvsp[-4].EXP).val),(yyvsp[-5].EXP).val,(yyvsp[-3].EXP).val,temp);
@@ -1971,11 +2046,11 @@ yyreduce:
 				(yyval.EXP).t = strdup(temp2);
 				ntemp++;
 			}
-#line 1975 "syntaxique.tab.c"
+#line 2050 "syntaxique.tab.c"
     break;
 
   case 67: /* CONDITION: negation round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f or CONDITION  */
-#line 697 "syntaxique.y"
+#line 772 "syntaxique.y"
                         {
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi((yyvsp[-4].EXP).val),(yyvsp[-5].EXP).val,(yyvsp[-3].EXP).val,temp);
@@ -2000,53 +2075,53 @@ yyreduce:
 				(yyval.EXP).t = strdup(temp3);
 				ntemp++;
 			}
-#line 2004 "syntaxique.tab.c"
+#line 2079 "syntaxique.tab.c"
     break;
 
   case 68: /* CMP: sup  */
-#line 724 "syntaxique.y"
+#line 799 "syntaxique.y"
           {(yyval.EXP).val = strdup(">"); (yyval.EXP).t = strdup(">"); }
-#line 2010 "syntaxique.tab.c"
+#line 2085 "syntaxique.tab.c"
     break;
 
   case 69: /* CMP: inf  */
-#line 725 "syntaxique.y"
+#line 800 "syntaxique.y"
               {(yyval.EXP).val = strdup("<"); (yyval.EXP).t = strdup("<");}
-#line 2016 "syntaxique.tab.c"
+#line 2091 "syntaxique.tab.c"
     break;
 
   case 70: /* CMP: sup_eg  */
-#line 726 "syntaxique.y"
+#line 801 "syntaxique.y"
                  {(yyval.EXP).val = strdup(">="); (yyval.EXP).t = strdup(">=");}
-#line 2022 "syntaxique.tab.c"
+#line 2097 "syntaxique.tab.c"
     break;
 
   case 71: /* CMP: inf_eg  */
-#line 727 "syntaxique.y"
+#line 802 "syntaxique.y"
                  {(yyval.EXP).val = strdup("<="); (yyval.EXP).t = strdup("<=");}
-#line 2028 "syntaxique.tab.c"
+#line 2103 "syntaxique.tab.c"
     break;
 
   case 72: /* CMP: egal  */
-#line 728 "syntaxique.y"
+#line 803 "syntaxique.y"
                {(yyval.EXP).val = strdup("=="); (yyval.EXP).t = strdup("==");}
-#line 2034 "syntaxique.tab.c"
+#line 2109 "syntaxique.tab.c"
     break;
 
   case 73: /* CMP: not_egal  */
-#line 729 "syntaxique.y"
+#line 804 "syntaxique.y"
                    {(yyval.EXP).val = strdup("!="); (yyval.EXP).t = strdup("!=");}
-#line 2040 "syntaxique.tab.c"
+#line 2115 "syntaxique.tab.c"
     break;
 
   case 74: /* INIT_FINISH: entier  */
-#line 732 "syntaxique.y"
+#line 807 "syntaxique.y"
                      {char cstNat[15];  sprintf(cstNat,"%d",(yyvsp[0].num)); (yyval.str)=strdup(cstNat);}
-#line 2046 "syntaxique.tab.c"
+#line 2121 "syntaxique.tab.c"
     break;
 
   case 75: /* INIT_FINISH: idf  */
-#line 733 "syntaxique.y"
+#line 808 "syntaxique.y"
                         { 
 					if(routinIdfDeclar((yyvsp[0].str)) == 0)
 					{
@@ -2054,11 +2129,11 @@ yyreduce:
 					}
 					
 				}
-#line 2058 "syntaxique.tab.c"
+#line 2133 "syntaxique.tab.c"
     break;
 
 
-#line 2062 "syntaxique.tab.c"
+#line 2137 "syntaxique.tab.c"
 
       default: break;
     }
@@ -2251,7 +2326,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 745 "syntaxique.y"
+#line 820 "syntaxique.y"
 
 
 

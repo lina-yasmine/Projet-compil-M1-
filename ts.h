@@ -35,7 +35,7 @@ typedef struct tableH
 
 
 
-   //pour les idfs declarea
+//pour les idfs declarea
 typedef struct idfTemp
 	{
 		char nom[20];
@@ -47,6 +47,9 @@ typedef struct idfTemp
 
 static idfTemp * idfDeclT = NULL; //la tete de la liste chain� contenant que les idf d�clar�
 static idfTemp * idfDeclQ = NULL; //la queue de la liste chain� des idf d�clar�
+
+
+int getValueFromIdf(char *nom_entite,char* out);
 
 int hachage(char * chaine);
 void inserIdfDecl(char *nom,char * nature);
