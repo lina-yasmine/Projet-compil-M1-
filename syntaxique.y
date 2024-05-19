@@ -552,22 +552,34 @@ ELSE : 	{
 
 CONDITION : RIGHT_SIDE CMP RIGHT_SIDE 
 			{
+
+
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi($2.val),$1.val,$3.val,temp);
-				$$.val = strdup(temp);
+                int res = compare(atoi($1.val),$2.val,atoi($3.val));
+				const char *res_str = (res == 0) ? "0" : "1"; 
+				$$.val = strdup(res_str);
 				$$.t = strdup(temp);
 				ntemp++;
+
+
 			}
 			/******************************************************************************************/
 			| RIGHT_SIDE CMP RIGHT_SIDE and CONDITION
 			{
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi($2.val),$1.val,$3.val,temp);
+                int res = compare(atoi($1.val),$2.val,atoi($3.val));
 				ntemp++;
 				
 				sprintf(temp2, "T%d", ntemp);
 				createQuadL(3,temp,$5.val,temp2);
-				$$.val = strdup(temp2);
+
+				 if (res == 1 && strcmp($5.val, "1") == 0) {
+					 $$.val = strdup("1");
+					 } else {
+						 $$.val = strdup("0");
+						 }
 				$$.t = strdup(temp2);
 				ntemp++;
 			}
@@ -577,11 +589,16 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 			{
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi($2.val),$1.val,$3.val,temp);
+                int res = compare(atoi($1.val),$2.val,atoi($3.val));
 				ntemp++;
 				
 				sprintf(temp2, "T%d", ntemp);
 				createQuadL(2,temp,$5.val,temp2);
-				$$.val = strdup(temp2);
+				 if (res == 1 || strcmp($5.val, "1") == 0) {
+					 $$.val = strdup("1");
+					 } else {
+						 $$.val = strdup("0");
+						 }
 				$$.t = strdup(temp2);
 				ntemp++;
 			}
@@ -591,7 +608,9 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 			{
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi($3.val),$2.val,$4.val,temp);
-				$$.val = strdup(temp);
+				int res = compare(atoi($2.val),$3.val,atoi($4.val));
+				const char *res_str = (res == 0) ? "0" : "1"; 
+				$$.val = strdup(res_str);
 				$$.t = strdup(temp);
 				ntemp++;
 			}
@@ -602,10 +621,13 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi($4.val),$3.val,$5.val,temp);
 				ntemp++;
+				int res = compare(atoi($3.val),$4.val,atoi($5.val));
+				const char *res_str = (res == 0) ? "1" : "0"; 
 				
 				sprintf(temp2, "T%d", ntemp);
 				createQuadL(1,temp,"",temp2);
-				$$.val = strdup(temp2);
+				
+				$$.val = strdup(res_str);
 				$$.t = strdup(temp2);
 				ntemp++;
 			}
@@ -614,11 +636,17 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 			{
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi($3.val),$2.val,$4.val,temp);
+				int res = compare(atoi($2.val),$3.val,atoi($4.val));
 				ntemp++;
 				
 				sprintf(temp2, "T%d", ntemp);
 				createQuadL(3,temp,$7.val,temp2);
-				$$.val = strdup(temp2);
+
+				 if (res == 1 && strcmp($7.val, "1") == 0) {
+					 $$.val = strdup("1");
+					 } else {
+						 $$.val = strdup("0");
+						 }
 				$$.t = strdup(temp2);
 				ntemp++;
 			}
@@ -627,6 +655,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 			{
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi($4.val),$3.val,$5.val,temp);
+				int res = compare(atoi($3.val),$4.val,atoi($5.val));
 				ntemp++;
 			
 
@@ -635,8 +664,13 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 				ntemp++;
 			
 				sprintf(temp3, "T%d", ntemp);
-				createQuadL(3,temp,$8.val,temp3);	
-				$$.val = strdup(temp3);
+				createQuadL(3,temp,$8.val,temp3);
+
+				 if (res == 1 || strcmp($8.val, "1") == 0) {
+					 $$.val = strdup("0");
+					 } else {
+						 $$.val = strdup("1");
+						 }	
 				$$.t = strdup(temp3);
 				ntemp++;
 			}
@@ -645,11 +679,16 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 			{
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi($3.val),$2.val,$4.val,temp);
+                int res = compare(atoi($2.val),$3.val,atoi($4.val));
 				ntemp++;
 				
 				sprintf(temp2, "T%d", ntemp);
 				createQuadL(2,temp,$7.val,temp2);
-				$$.val = strdup(temp2);
+				 if (res == 1 || strcmp($7.val, "1") == 0) {
+					 $$.val = strdup("1");
+					 } else {
+						 $$.val = strdup("0");
+						 }
 				$$.t = strdup(temp2);
 				ntemp++;
 			}
@@ -658,6 +697,8 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 			{
 				sprintf(temp, "T%d", ntemp); 
 				createQuadC(atoi($4.val),$3.val,$5.val,temp);
+                int res = compare(atoi($3.val),$4.val,atoi($5.val));
+
 				ntemp++;
 			
 
@@ -667,19 +708,25 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 			
 				sprintf(temp3, "T%d", ntemp);
 				createQuadL(2,temp,$8.val,temp3);
-				$$.val = strdup(temp3);
+
+				 if (res == 1 && strcmp($8.val, "1") == 0) {
+					 $$.val = strdup("0");
+					 } else {
+						 $$.val = strdup("1");
+						 }
+
 				$$.t = strdup(temp3);
 				ntemp++;
 			}
 ;
 
 
-CMP : sup {$$.val = strdup("1"); $$.t = strdup("1"); }
-	| inf {$$.val = strdup("2"); $$.t = strdup("2");}
-	| sup_eg {$$.val = strdup("3"); $$.t = strdup("3");}
-	| inf_eg {$$.val = strdup("4"); $$.t = strdup("4");}
-	| egal {$$.val = strdup("5"); $$.t = strdup("5");}
-	| not_egal {$$.val = strdup("6"); $$.t = strdup("6");} 
+CMP : sup {$$.val = strdup(">"); $$.t = strdup(">"); }
+	| inf {$$.val = strdup("<"); $$.t = strdup("<");}
+	| sup_eg {$$.val = strdup(">="); $$.t = strdup(">=");}
+	| inf_eg {$$.val = strdup("<="); $$.t = strdup("<=");}
+	| egal {$$.val = strdup("=="); $$.t = strdup("==");}
+	| not_egal {$$.val = strdup("!="); $$.t = strdup("!=");} 
 ;
 
 INIT_FINISH : entier {char cstNat[15];  sprintf(cstNat,"%d",$1); $$=strdup(cstNat);}

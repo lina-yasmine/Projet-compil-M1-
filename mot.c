@@ -3,6 +3,11 @@
 #include <string.h>
 #include "mot.h"
 
+element tab[1000];
+elt tabs[40], tabm[40];
+
+static char chaine[] = "";
+
 void initialisationMC()
 {
     int i;

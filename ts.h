@@ -33,8 +33,7 @@ typedef struct tableH
    entite * queue;
 } tableH;
 
-//un tableau de structures "tableH"
-tableH  TableHachage[673];
+
 
    //pour les idfs declarea
 typedef struct idfTemp
