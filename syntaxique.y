@@ -237,6 +237,7 @@ SIMPLE_INSTRUCTIONS :  LEFT_SIDE aff RIGHT_SIDE pnt_vir
 									{
 										
 							            insererVal(sauvidf,$3.val,$3.type); 
+										// $1.val = $3.val;
 										createQuad("=",$3.t,"",$1.val);
 									}
 							}
@@ -465,6 +466,7 @@ var : idf
 COMPLEX_INSTRUCTIONS : mc_if round_brackets_o CONDITION round_brackets_f 
 						{
 							qcT=qc;createQuad("BZ","",liste[qc-1].res,"");
+
 						}
 					   curly_brackets_o PARTIE_CODE curly_brackets_f ELSE
 					   
@@ -555,7 +557,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 
 
 				sprintf(temp, "T%d", ntemp); 
-				createQuadC(atoi($2.val),$1.val,$3.val,temp);
+				createQuadC(atoi($2.t),$1.val,$3.val,temp);
                 int res = compare(atoi($1.val),$2.val,atoi($3.val));
 				const char *res_str = (res == 0) ? "0" : "1"; 
 				$$.val = strdup(res_str);
@@ -568,7 +570,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 			| RIGHT_SIDE CMP RIGHT_SIDE and CONDITION
 			{
 				sprintf(temp, "T%d", ntemp); 
-				createQuadC(atoi($2.val),$1.val,$3.val,temp);
+				createQuadC(atoi($2.t),$1.val,$3.val,temp);
                 int res = compare(atoi($1.val),$2.val,atoi($3.val));
 				ntemp++;
 				
@@ -588,7 +590,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 			| RIGHT_SIDE CMP RIGHT_SIDE or CONDITION
 			{
 				sprintf(temp, "T%d", ntemp); 
-				createQuadC(atoi($2.val),$1.val,$3.val,temp);
+				createQuadC(atoi($2.t),$1.val,$3.val,temp);
                 int res = compare(atoi($1.val),$2.val,atoi($3.val));
 				ntemp++;
 				
@@ -607,7 +609,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 			| round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f
 			{
 				sprintf(temp, "T%d", ntemp); 
-				createQuadC(atoi($3.val),$2.val,$4.val,temp);
+				createQuadC(atoi($3.t),$2.val,$4.val,temp);
 				int res = compare(atoi($2.val),$3.val,atoi($4.val));
 				const char *res_str = (res == 0) ? "0" : "1"; 
 				$$.val = strdup(res_str);
@@ -619,7 +621,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 			| negation round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f
 			{
 				sprintf(temp, "T%d", ntemp); 
-				createQuadC(atoi($4.val),$3.val,$5.val,temp);
+				createQuadC(atoi($4.t),$3.val,$5.val,temp);
 				ntemp++;
 				int res = compare(atoi($3.val),$4.val,atoi($5.val));
 				const char *res_str = (res == 0) ? "1" : "0"; 
@@ -635,7 +637,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 			| round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f and CONDITION
 			{
 				sprintf(temp, "T%d", ntemp); 
-				createQuadC(atoi($3.val),$2.val,$4.val,temp);
+				createQuadC(atoi($3.t),$2.val,$4.val,temp);
 				int res = compare(atoi($2.val),$3.val,atoi($4.val));
 				ntemp++;
 				
@@ -654,7 +656,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 			| negation round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f and CONDITION
 			{
 				sprintf(temp, "T%d", ntemp); 
-				createQuadC(atoi($4.val),$3.val,$5.val,temp);
+				createQuadC(atoi($4.t),$3.val,$5.val,temp);
 				int res = compare(atoi($3.val),$4.val,atoi($5.val));
 				ntemp++;
 			
@@ -678,7 +680,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 			| round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f or CONDITION
 			{
 				sprintf(temp, "T%d", ntemp); 
-				createQuadC(atoi($3.val),$2.val,$4.val,temp);
+				createQuadC(atoi($3.t),$2.val,$4.val,temp);
                 int res = compare(atoi($2.val),$3.val,atoi($4.val));
 				ntemp++;
 				
@@ -696,7 +698,7 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 			| negation round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f or CONDITION
 			{
 				sprintf(temp, "T%d", ntemp); 
-				createQuadC(atoi($4.val),$3.val,$5.val,temp);
+				createQuadC(atoi($4.t),$3.val,$5.val,temp);
                 int res = compare(atoi($3.val),$4.val,atoi($5.val));
 
 				ntemp++;
@@ -720,13 +722,13 @@ CONDITION : RIGHT_SIDE CMP RIGHT_SIDE
 			}
 ;
 
-
-CMP : sup {$$.val = strdup(">"); $$.t = strdup(">"); }
-	| inf {$$.val = strdup("<"); $$.t = strdup("<");}
-	| sup_eg {$$.val = strdup(">="); $$.t = strdup(">=");}
-	| inf_eg {$$.val = strdup("<="); $$.t = strdup("<=");}
-	| egal {$$.val = strdup("=="); $$.t = strdup("==");}
-	| not_egal {$$.val = strdup("!="); $$.t = strdup("!=");} 
+// les valeurs 1..6 sont utilisé comme entrée dans la fonction createQuadC
+CMP : sup {$$.val = strdup(">"); $$.t = strdup("1"); }
+	| inf {$$.val = strdup("<"); $$.t = strdup("2");}
+	| sup_eg {$$.val = strdup(">="); $$.t = strdup("3");}
+	| inf_eg {$$.val = strdup("<="); $$.t = strdup("4");}
+	| egal {$$.val = strdup("=="); $$.t = strdup("5");}
+	| not_egal {$$.val = strdup("!="); $$.t = strdup("6");} 
 ;
 
 INIT_FINISH : entier {char cstNat[15];  sprintf(cstNat,"%d",$1); $$=strdup(cstNat);}
