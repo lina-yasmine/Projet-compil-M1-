@@ -3,6 +3,10 @@
 #include <string.h>
 #include "ts.h"
 
+
+//un tableau de structures "tableH"
+tableH  TableHachage[673];
+
 extern void afficheErreur(char *d, int a);
 
 int hachage(char *chaine)

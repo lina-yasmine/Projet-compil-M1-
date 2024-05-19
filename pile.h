@@ -1,5 +1,4 @@
 
-
 typedef struct pile
 {
 	char nom[20];
