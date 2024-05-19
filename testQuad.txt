@@ -8,14 +8,13 @@ DECLARATION{
 
 INSTRUCTION{
      
-		A = 0;
-
+		    A = 0;
 			A = A + 1;
             A= 2 * 3;
-            A= 10/5;
-               X= 5 + 2;	
+            A= 10 / 5;
+            X= 5 + 2;	
             A = (X+ 7+B) /( 5.3 - (-2) );
+            X= 2;
 
 		
-		%% Resultat A = 6
 }
