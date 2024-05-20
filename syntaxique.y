@@ -28,7 +28,7 @@
 	int qcT=0;
 	int qcElse=0;
 	int qct2=0;
-
+    int global=1;
 	int yylex();
 	int yyerror(char* msg);
 	void afficheErreur(char* d , int a);
@@ -80,7 +80,7 @@ char *t;
 
 %% 
 
-S : mc_var curly_brackets_o GLOBAL_DECLARATIONS curly_brackets_f mc_dec curly_brackets_o LOCAL_DECLARATIONS curly_brackets_f mc_inst curly_brackets_o PARTIE_CODE curly_brackets_f
+S : mc_var curly_brackets_o {global=1;}GLOBAL_DECLARATIONS curly_brackets_f mc_dec curly_brackets_o  {global=0;} LOCAL_DECLARATIONS curly_brackets_f mc_inst curly_brackets_o PARTIE_CODE curly_brackets_f
 { printf ("\n\nProgramme syntaxiquement correcte\n\n"); YYACCEPT; }
 ;
 
@@ -105,9 +105,11 @@ DECLARATION_VARIABLE : TYPE LISTE_VAR
 									}
 									else 
 									{      
-										inserIdfDecl($2,"Variable"); 
-										insererType($2,suavType,"Variable",1); // taille de ifd = 1
-							            insererVal($2,$4.val,$4.type); 
+
+									    char* type = (global == 0) ? "Variable" : "Variable Global";
+										inserIdfDecl($2, type);
+										insererType($2, suavType, type, 1); // taille de ifd = 1
+										insererVal($2,$4.val,$4.type); 
 										createQuad("=",$4.t,"",$2);
 									}
 										 
@@ -123,8 +125,10 @@ DECLARATION_VARIABLE : TYPE LISTE_VAR
 				    { 
 					    if(doubleDeclaration($2)==0 ) 
 						{ 
-							inserIdfDecl($2,"Constante"); 
-							insererType($2 ,suavType,"Constante",1); 
+							
+						    char* type = (global == 0) ? "Constante" : "Constante Global";
+							inserIdfDecl($2, type);
+							insererType($2, suavType, type, 1);
 							insererVal($2,$4.val,$4.type); 
 						}
                         else  
@@ -137,8 +141,11 @@ DECLARATION_VARIABLE : TYPE LISTE_VAR
                         { 
 						    if(doubleDeclaration($2)==0 ) 
 							{ 
-							    inserIdfDecl($2,"Tableau"); 
-								insererType($2,suavType,"Tableau",$4); 
+
+							char* type = (global == 0) ? "Tableau" : "Tableau Global";
+							inserIdfDecl($2, type);
+							insererType($2, suavType, type, $4);
+
 			                }
                             else 
 							{       
@@ -148,12 +155,12 @@ DECLARATION_VARIABLE : TYPE LISTE_VAR
                     | TYPE idf square_brackets_o entier_sign square_brackets_f 
 					    { 
 						    if(doubleDeclaration($2)==0 ) 
-							{ 
-							    if( $4>0 )
-								{
-             					    inserIdfDecl($2,"Tableau"); 
-									insererType($2,suavType,"Tableau",$4); 
-			                    }
+							{ 			                    
+								if ($4 > 0) {
+									char* type = (global == 0) ? "Tableau" : "Tableau Global";
+									inserIdfDecl($2, type);
+									insererType($2, suavType, type, $4);
+									}
 							    else 
 								{
                                     afficheErreur($2 , 3); 
@@ -175,9 +182,13 @@ LISTE_VAR : idf {p = NULL;} virgule LISTE_VAR
 						    { 
 							    if(doubleDeclaration($1)==0 )
 								{ 
-									inserIdfDecl($1,"Variable"); 
+									
+									char* type = (global == 0) ? "Variable" : "Variable Global";
+									inserIdfDecl($1, type);
 									empiler($1); 
-									while(p != NULL)  insererType(depiler(),suavType,"Variable",1); 
+									while(p != NULL)  { 
+										insererType(depiler(),suavType,type,1); 
+										}
 								}
                                 else  
 								{      
@@ -188,8 +199,12 @@ LISTE_VAR : idf {p = NULL;} virgule LISTE_VAR
 			{ 
 			    if(doubleDeclaration($1)==0 )
 				{ 
-					inserIdfDecl($1,"Variable"); 
-					empiler($1); insererType(depiler(),suavType,"Variable",1);
+
+					 char* type = (global == 0) ? "Variable" : "Variable Global";
+                     inserIdfDecl($1, type);
+                     empiler($1); 
+                     insererType(depiler(), suavType, type, 1);
+
 				}
                 else  
 				{       
