@@ -5,9 +5,8 @@
 	#include "syntaxique.tab.h"
 	#include "ts.h"
 	#include "mot.h"
-      
-	extern Col;
-	extern line_number;
+	extern int Col;
+	extern int line_number;
 	extern YYSTYPE yylval;
 	
 %}

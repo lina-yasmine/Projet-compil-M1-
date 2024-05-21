@@ -1,0 +1,16 @@
+VAR_GLOBAL{
+	
+}
+DECLARATION{ 
+     INTEGER  A,i ,  X , B;
+     INTEGER D=5;
+     FLOAT N;
+    }
+
+INSTRUCTION{
+        N= 32;
+        N= (X + 3)  / (5 + 2);
+        A= A + 2;
+		
+		%% Resultat A = 6
+}

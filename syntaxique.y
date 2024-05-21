@@ -1,4 +1,6 @@
 %{
+
+	#include "math.h"	
 	#include "quad.c"
 	#include <stddef.h>
 	#include <stdio.h>
@@ -7,24 +9,34 @@
     #include <stdlib.h>
     #include <time.h>
 	#include "pile.h"
+	#include "mot.c"
+	#include "ts.c"
 
-	
 	int line_number=1, Col=0;
+	int ntemp=1;
+	char temp [20];
+	char temp2 [20];
+	char temp3 [20];
+	char sauvT [20];
+	char sauvType [20];
+	char* sauvidf; 
+	char * out;
+	char opr1 [20];
+	int valTab;
+	char sauv_list_obj [20][100];
+	int indice_obj = 0;
+	char sauv_list_obj2 [20][100];
+	int indice_obj2 = 0;
+	int qcT=0;
+	int qcElse=0;
+	int qct2=0;
 
 	int yylex();
 	int yyerror(char* msg);
+	void afficheErreur(char* d , int a);
 
-	void afficheErreur(char* d , int a)
-    {   
-    }
-    void initialisationMC();
-    void afficherMS();
-    void afficher();
-    void afficherDecl();
 
 %} 
-
-
 
 %union {
 int num;
@@ -34,6 +46,7 @@ char * str;
 struct {
 char * type;
 char * val;
+char *t;
 } EXP;
 
 }
@@ -69,42 +82,141 @@ char * val;
 
 %% 
 
-S : mc_var curly_brackets_o PARTIE_DECLARATION curly_brackets_f mc_dec curly_brackets_o PARTIE_DECLARATION curly_brackets_f mc_inst curly_brackets_o PARTIE_CODE curly_brackets_f
+S : mc_var curly_brackets_o GLOBAL_DECLARATIONS curly_brackets_f mc_dec curly_brackets_o LOCAL_DECLARATIONS curly_brackets_f mc_inst curly_brackets_o PARTIE_CODE curly_brackets_f
 { printf ("\n\nProgramme syntaxiquement correcte\n\n"); YYACCEPT; }
 ;
 
-PARTIE_DECLARATION :  DECLARATION_VARIABLE PARTIE_DECLARATION
-					| DECLARATION_CONST PARTIE_DECLARATION
-					| DECLARATION_TABLEAU PARTIE_DECLARATION
-					|
+
+GLOBAL_DECLARATIONS : DECLARATION_VARIABLE pnt_vir GLOBAL_DECLARATIONS
+                     |
 ;
 
-DECLARATION_VARIABLE : TYPE LISTE_VAR pnt_vir 
-					| TYPE idf aff VALUE pnt_vir 
+LOCAL_DECLARATIONS : DECLARATION_VARIABLE pnt_vir LOCAL_DECLARATIONS
+                    |
 ;
 
-TYPE :    mc_int 
-		| mc_float 
+DECLARATION_VARIABLE : TYPE LISTE_VAR  
+					   
+					| TYPE idf aff VALUE 
+					   { 
+						   if(doubleDeclaration($2)==0 ) 
+							{  
+									if(strcmp(sauvType, $4.type) != 0) 
+									{
+										afficheErreur( $2 , 2);
+									}
+									else 
+									{      
+										inserIdfDecl($2,"Variable"); 
+										insererType($2,sauvType,"Variable",1); // taille de ifd = 1
+							            insererVal($2,$4.val,$4.type); 
+										createQuad("=",$4.t,"",$2);
+									}
+										 
+							}
+							else  
+							{       
+								afficheErreur($2 , 1); 
+							}
+						}
+						
+					| mc_const idf aff VALUE 
+                   
+				    { 
+					    if(doubleDeclaration($2)==0 ) 
+						{ 
+							inserIdfDecl($2,"Constante"); 
+							insererType($2 ,sauvType,"Constante",1); 
+							insererVal($2,$4.val,$4.type); 
+						}
+                        else  
+						{   
+                            afficheErreur($2 , 1); 
+					    }   
+					}
+    
+                    | TYPE idf square_brackets_o entier square_brackets_f 
+                        { 
+						    if(doubleDeclaration($2)==0 ) 
+							{ 
+							    inserIdfDecl($2,"Tableau"); 
+								insererType($2,sauvType,"Tableau",$4); 
+			                }
+                            else 
+							{       
+                                afficheErreur($2 , 1);
+			                }
+                        }  
+                    | TYPE idf square_brackets_o entier_sign square_brackets_f 
+					    { 
+						    if(doubleDeclaration($2)==0 ) 
+							{ 
+							    if( $4>0 )
+								{
+             					    inserIdfDecl($2,"Tableau"); 
+									insererType($2,sauvType,"Tableau",$4); 
+			                    }
+							    else 
+								{
+                                    afficheErreur($2 , 3); 
+								}
+							}
+							else 
+							{      
+                                afficheErreur($2 , 1);
+				            }
+                        }  
 ;
 
-LISTE_VAR : idf virgule LISTE_VAR 		
+TYPE :    mc_int {strcpy(sauvType,$1);}
+		| mc_float {strcpy(sauvType,$1);}
+;
+
+
+LISTE_VAR : idf {p = NULL;} virgule LISTE_VAR 
+						    { 
+							    if(doubleDeclaration($1)==0 )
+								{ 
+									inserIdfDecl($1,"Variable"); 
+									empiler($1); 
+									while(p != NULL)  insererType(depiler(),sauvType,"Variable",1); 
+								}
+                                else  
+								{      
+                                    afficheErreur($1 , 1); 
+							    }
+							}
 			|idf  
+			{ 
+			    if(doubleDeclaration($1)==0 )
+				{ 
+					inserIdfDecl($1,"Variable"); 
+					empiler($1); insererType(depiler(),sauvType,"Variable",1);
+				}
+                else  
+				{       
+                    afficheErreur($1 , 1 ); 
+			    }
+			}
 ;
 
-DECLARATION_CONST : mc_const idf aff VALUE pnt_vir
+
+
+VALUE : entier { $<EXP.type>$=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%d",$1);    $$.val=strdup(cstE);  $$.t=strdup(cstE);  }
+		|round_brackets_o entier_sign round_brackets_f { $<EXP.type>$=strdup("INTEGER"); char cstE[15];  sprintf(cstE,"%d",$2);    $$.val=strdup(cstE);  $$.t=strdup(cstE);   }
+		| reel  { $<EXP.type>$=strdup("FLOAT"); char cstReel[20]; 
+			 float C = $1;		
+             sprintf(cstReel,"%.3f",C); 
+               $$.val=strdup(cstReel);
+			   $$.t=strdup(cstReel); }
+		| reel_sign  { $<EXP.type>$=strdup("FLOAT"); char cstReel[20];  
+				float C = $1;
+             sprintf(cstReel,"%.3f",C);  
+               $$.val=strdup(cstReel);  
+			   $$.t=strdup(cstReel);}
 ;
 
-VALUE :  entier
-		|round_brackets_o entier_sign round_brackets_f
-		| reel  
-		| reel_sign  
-;
 
-
-DECLARATION_TABLEAU : TYPE idf square_brackets_o entier square_brackets_f pnt_vir 
-                     |TYPE idf square_brackets_o entier_sign square_brackets_f pnt_vir
-
-;
 
 PARTIE_CODE :     SIMPLE_INSTRUCTIONS PARTIE_CODE
 				| COMPLEX_INSTRUCTIONS PARTIE_CODE
@@ -114,30 +226,274 @@ PARTIE_CODE :     SIMPLE_INSTRUCTIONS PARTIE_CODE
 
 
 
-SIMPLE_INSTRUCTIONS :  LEFT_SIDE aff RIGHT_SIDE pnt_vir	 		
+SIMPLE_INSTRUCTIONS :  LEFT_SIDE aff RIGHT_SIDE pnt_vir	 
+						{
+                           if ( routineModifCst($1.val) != -1)
+                            {  
+								
+								if (strcmp($1.type,"INTEGER") == 0 && strcmp($3.type,"FLOAT") == 0)	
+									{
+										printf("\nErreur semantique %d:%d, incompatibilite des types: type %s:%s  type %s:%s \n", line_number, Col,$1.val,$1.type,$3.val,$3.type);
+										_Exit(0);
+									}
+
+								if (strcmp($1.type,"FLOAT") == 0 && strcmp($3.type,"INTEGER") == 0)	
+									{
+										 insererVal(sauvidf,$3.val,$1.type); 
+										createQuad("=",$3.t,"",$1.val);
+									}
+								
+								if (strcmp($1.type,"FLOAT") == 0 && strcmp($3.type,"INTEGER") == 0)	
+									{
+										 insererVal(sauvidf,$3.val,$1.type); 
+										createQuad("=",$3.t,"",$1.val);
+									}
+								
+								if (strcmp($1.type,"INTEGER") == 0 && strcmp($3.type,"INTEGER") == 0)	
+									{
+										 insererVal(sauvidf,$3.val,$1.type); 
+										createQuad("=",$3.t,"",$1.val);
+									}
+							}
+						}			
 ;
 
 
-LEFT_SIDE :  idf 
+LEFT_SIDE : idf 
+				{  
+					if(routinIdfDeclar($1) == 0)
+					{
+					   afficheErreur($1 , 5); 
+					}
+					sauvidf=$1;
+					char t2[12];
+					typeDeIdf(t2,$1);
+					$<EXP.type>$=strdup(t2);
+					$$.val=strdup($1) ;
+					$$.t=strdup($1) ;
+					
+					   
+				}
 			| case
-			  
+			    {   
+				    $<EXP.type>$=strdup($1.type); 
+					$$.val=strdup($1.val) ; 
+					$$.t=strdup($1.val) ;
+					
+				}
+			
 ;
 
 
-RIGHT_SIDE :  ELEMENT 		
+RIGHT_SIDE : ELEMENT 
+			{  
+				$<EXP.type>$=strdup($1.type);
+				$$.val=strdup($1.val); 
+				$$.t = strdup($1.t);
+			}
+						
 			| ELEMENT OPER RIGHT_SIDE  
-		    | round_brackets_o ELEMENT round_brackets_f OPER RIGHT_SIDE
+			{
+
+			    if(strcmp($1.type,$3.type) == 0)
+				{ 
+					$<EXP.type>$=strdup($1.type); 
+				}
+				else 
+				{
+					$<EXP.type>$=strdup("FLOAT");
+				}
+
+
+				
+				strcpy(opr1,$1.val);
+				sprintf(temp, "T%d", ntemp); 
+				createQuad($2,opr1,$3.t,temp); 
+
+
+				if ($1.val == NULL || $1.val == NULL) {
+
+				}
+				double result=operationMath(atof($1.val),$2, atof($3.val));
+				char result_str[50];
+
+				double intpart;
+					double fracpart = modf(result, &intpart);
+
+					if (fracpart == 0.0) {
+						sprintf(result_str, "%.0f", result);
+						$<EXP.type>$=strdup("INTEGER");
+					} else {
+						sprintf(result_str, "%.3f", result);
+						$<EXP.type>$=strdup("FLOAT");				
+					}
+				
+				$$.val = strdup(result_str);
+				$$.t = strdup(temp);
+			    ntemp++;
+				
+			}
+			
+			
+			/******************************************************************************************/
+			| round_brackets_o ELEMENT round_brackets_f OPER RIGHT_SIDE
+			{  
+				if(strcmp($2.type,$5.type) == 0)
+				{ 
+					$<EXP.type>$=strdup($2.type); 
+				}
+				else 
+				{
+					$<EXP.type>$=strdup("FLOAT");
+				}
+				sprintf(temp, "T%d", ntemp); 
+				strcpy(opr1,$2.val);
+				createQuad($4,opr1,$5.t,temp);
+				
+				double result=operationMath(atof($2.val),$4, atof($5.val));
+				char result_str[50];
+				
+				double intpart;
+					double fracpart = modf(result, &intpart);
+
+					if (fracpart == 0.0) {
+						sprintf(result_str, "%.0f", result);
+						$<EXP.type>$=strdup("INTEGER");
+					} else {
+						sprintf(result_str, "%.3f", result);
+						$<EXP.type>$=strdup("FLOAT");				
+					}	
+			
+				$$.val = strdup(result_str);
+				$$.t = strdup(temp);
+			    ntemp++;
+				
+			}
+			
+			
+			/******************************************************************************************/
 			| round_brackets_o ELEMENT round_brackets_f
-		    | round_brackets_o ELEMENT OPER RIGHT_SIDE round_brackets_f OPER RIGHT_SIDE
-	     	| round_brackets_o ELEMENT OPER RIGHT_SIDE round_brackets_f
-		    
+			{  
+				$<EXP.type>$=strdup($2.type); $$.val=strdup($2.val) ; $$.t = strdup($2.val);	
+			}
+			
+			/******************************************************************************************/
+			| round_brackets_o ELEMENT OPER RIGHT_SIDE round_brackets_f OPER RIGHT_SIDE
+			{
+								
+
+				if(strcmp($2.type,$4.type) == 0 && strcmp($2.type,$7.type) == 0)
+				{ 
+					$<EXP.type>$=strdup($2.type); 
+				}
+				else 
+				{
+					$<EXP.type>$=strdup("FLOAT");
+				}
+			
+					
+					sprintf(temp, "T%d", ntemp); 
+					strcpy(opr1,$2.val);
+					createQuad($3,opr1,$4.t,temp);
+					ntemp++;
+
+					sprintf(temp2, "T%d", ntemp); 
+					strcpy(opr1,$2.val);
+					createQuad($6,temp,$7.t,temp2);
+
+					
+					double result1 = operationMath(atof($2.val),$3, atof($4.val));
+
+					double result=operationMath(result1,$6, atof($7.val));
+					char result_str[50];
+
+				    double intpart;
+					double fracpart = modf(result, &intpart);
+
+					if (fracpart == 0.0) {
+						sprintf(result_str, "%.0f", result);
+						$<EXP.type>$=strdup("INTEGER");
+					} else {
+						sprintf(result_str, "%.3f", result);
+						$<EXP.type>$=strdup("FLOAT");				
+					}
+
+				    $$.val = strdup(result_str);
+				    $$.t = strdup(temp2);
+			        ntemp++;
+				
+										
+			}
+			
+			/******************************************************************************************/
+			| round_brackets_o ELEMENT OPER RIGHT_SIDE round_brackets_f
+			{
+				    if(strcmp($2.type,$4.type) == 0)
+					{ 
+						$<EXP.type>$=strdup($2.type); 
+					}
+					else 
+					{
+						$<EXP.type>$=strdup("FLOAT");
+					}	
+					
+					sprintf(temp, "T%d", ntemp); 
+					strcpy(opr1,$2.val);
+					createQuad($3,opr1,$4.t,temp);
+
+					double result=operationMath(atof($2.val),$3, atof($4.val));
+					char result_str[50];
+				    
+
+					double intpart;
+					double fracpart = modf(result, &intpart);
+
+					if (fracpart == 0.0) {
+						sprintf(result_str, "%.0f", result);
+						$<EXP.type>$=strdup("INTEGER");
+					} else {
+						sprintf(result_str, "%.3f", result);
+						$<EXP.type>$=strdup("FLOAT");				
+					}
+
+				    $$.val = strdup(result_str);
+				    $$.t = strdup(temp);
+			        ntemp++;					
+			}
+            
 		       
 ;
 
 
-ELEMENT :idf 
-		| case 
-        |VALUE 
+ELEMENT : idf 
+            {  
+                if(routinIdfDeclar($1) == 0)
+				{
+                    afficheErreur($1 , 5);
+				}
+
+
+				
+				
+				char value[15];
+				if (getValueFromIdf($1,value) <= 0) {
+					printf("\n Error");
+					_Exit(0);
+				};
+				printf("\n Len %zu",strlen(value));
+                char t2[12];
+                typeDeIdf(t2,$1);
+				
+                $<EXP.type>$=strdup(t2);
+				$$.val=strdup(value) ;
+				$$.t=strdup(value) ;
+			}
+			
+		/******************************************************************************************/
+		| case {   $<EXP.type>$=strdup($1.type); $$.val=strdup($1.val) ;$$.t=strdup($1.val) ;  }
+		
+		/******************************************************************************************/
+        |VALUE  {   $<EXP.type>$=strdup($1.type); $$.val=strdup($1.val) ; $$.t=strdup($1.val) ; }
 ;
 
 
@@ -148,17 +504,98 @@ OPER : plus
 ;
 
 case: idf square_brackets_o var square_brackets_f 
-; 
+        {  
+		    if(routinIdfDeclar($1) == 0) 
+			{
+                afficheErreur($1 , 5); 
+			}
+			sauvidf=$1;
+           routineDebordementTab($1,valTab); 
+            char idft[12];
+            typeDeIdf(idft, $1);
+            $<EXP.type>$=strdup(idft); 
+			char Tmp[50]; strcpy(Tmp,$1); strcat(Tmp,"["); strcat(Tmp,$3); strcat(Tmp,"]"); 
+			$$.val = strdup(Tmp);
+			$$.t = strdup(Tmp);
 
+        }
+; 
 var : idf 
-    | entier 
+        { 
+		    if(routinIdfDeclar($1) == 0)
+			{
+                afficheErreur($1 , 7);
+		    }                                    
+            else   
+			{ 
+			    $$=strdup($1);
+            }
+        }
+    | entier { valTab=$1 ; char cstNat[15];  sprintf(cstNat,"%d",$1); $$=strdup(cstNat); }
     ;
 
 
-COMPLEX_INSTRUCTIONS :
- mc_if round_brackets_o CONDITION round_brackets_f curly_brackets_o PARTIE_CODE curly_brackets_f ELSE
-| mc_for round_brackets_o idf double_pnt INIT_FINISH double_pnt entier double_pnt INIT_FINISH round_brackets_f curly_brackets_o PARTIE_CODE curly_brackets_f 
-| mc_while round_brackets_o CONDITION round_brackets_f curly_brackets_o PARTIE_CODE curly_brackets_f
+
+
+COMPLEX_INSTRUCTIONS : mc_if round_brackets_o CONDITION round_brackets_f 
+						{
+							qcT=qc;createQuad("BZ","",liste[qc-1].res,"");
+						}
+					   curly_brackets_o PARTIE_CODE curly_brackets_f ELSE
+					   
+					   /******************************************************************************************/
+						| mc_for round_brackets_o idf double_pnt INIT_FINISH double_pnt entier double_pnt INIT_FINISH round_brackets_f 
+						{
+						
+							if(routinIdfDeclar($3) == 0)
+							{
+                                afficheErreur($3 , 5); 
+							}
+							
+							createQuad("=",$5,"",$3);
+							qcT=qc;
+							sprintf(temp, "T%d", ntemp); 
+							createQuadC(3,$3,$5,temp);
+							ntemp++;
+							
+							sprintf(temp2, "T%d", ntemp); 
+							createQuadC(4,$3,$9,temp2);
+							ntemp++;
+							
+							sprintf(temp3, "T%d", ntemp);
+							createQuadL(3,temp,temp2,temp3);
+							ntemp++;
+							qct2=qc;
+							createQuad("BZ","",temp3,"");
+							
+						}
+						  curly_brackets_o PARTIE_CODE curly_brackets_f 
+						    {
+								sprintf(temp, "T%d", ntemp);
+								createQuad("+",$3,convert($7),temp);
+								createQuad("=",temp,"",$3);
+								ntemp++;
+						        createQuad("BR",convert(qcT),"","");
+								liste[qct2].op1=convert(qc);
+						    }
+							
+						/******************************************************************************************/
+						| mc_while round_brackets_o 
+						{
+							qcT=qc;
+						}
+						  CONDITION round_brackets_f 
+						{
+							qct2=qc;
+							createQuad("BZ","",liste[qc-1].res,"");
+							
+						}
+						  curly_brackets_o PARTIE_CODE curly_brackets_f
+						{
+							createQuad("BR",convert(qcT),"","");
+							liste[qct2].op1=convert(qc);
+						}
+
 | mc_read round_brackets_o idf round_brackets_f pnt_vir
 | mc_write round_brackets_o INSTRUCTION_WRITE round_brackets_f pnt_vir					
 ;
@@ -173,35 +610,210 @@ write_arg :
     | idf
     ;
 
-ELSE :   mc_else curly_brackets_o PARTIE_CODE curly_brackets_f 
-		| 
+ELSE : 	{
+			liste[qcT].op1=convert(qc+1);
+			qcElse=qc;
+			createQuad("BR","","","");
+		}
+		mc_else curly_brackets_o PARTIE_CODE curly_brackets_f 
+		{
+			liste[qcElse].op1=convert(qc);
+		}
+		| {
+			liste[qcT].op1=convert(qc);
+
+		}
 ;
 
-CONDITION :   RIGHT_SIDE CMP RIGHT_SIDE 
+CONDITION : RIGHT_SIDE CMP RIGHT_SIDE 
+			{
+
+
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($2.val),$1.val,$3.val,temp);
+                int res = compare(atoi($1.val),$2.val,atoi($3.val));
+				const char *res_str = (res == 0) ? "0" : "1"; 
+				$$.val = strdup(res_str);
+				$$.t = strdup(temp);
+				ntemp++;
+
+
+			}
+			/******************************************************************************************/
 			| RIGHT_SIDE CMP RIGHT_SIDE and CONDITION
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($2.val),$1.val,$3.val,temp);
+                int res = compare(atoi($1.val),$2.val,atoi($3.val));
+				ntemp++;
+				
+				sprintf(temp2, "T%d", ntemp);
+				createQuadL(3,temp,$5.val,temp2);
+
+				 if (res == 1 && strcmp($5.val, "1") == 0) {
+					 $$.val = strdup("1");
+					 } else {
+						 $$.val = strdup("0");
+						 }
+				$$.t = strdup(temp2);
+				ntemp++;
+			}
+			
+			/******************************************************************************************/
 			| RIGHT_SIDE CMP RIGHT_SIDE or CONDITION
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($2.val),$1.val,$3.val,temp);
+                int res = compare(atoi($1.val),$2.val,atoi($3.val));
+				ntemp++;
+				
+				sprintf(temp2, "T%d", ntemp);
+				createQuadL(2,temp,$5.val,temp2);
+				 if (res == 1 || strcmp($5.val, "1") == 0) {
+					 $$.val = strdup("1");
+					 } else {
+						 $$.val = strdup("0");
+						 }
+				$$.t = strdup(temp2);
+				ntemp++;
+			}
+			
+			/******************************************************************************************/
 			| round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f
-            | negation round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($3.val),$2.val,$4.val,temp);
+				int res = compare(atoi($2.val),$3.val,atoi($4.val));
+				const char *res_str = (res == 0) ? "0" : "1"; 
+				$$.val = strdup(res_str);
+				$$.t = strdup(temp);
+				ntemp++;
+			}
+			
+			/******************************************************************************************/
+			| negation round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($4.val),$3.val,$5.val,temp);
+				ntemp++;
+				int res = compare(atoi($3.val),$4.val,atoi($5.val));
+				const char *res_str = (res == 0) ? "1" : "0"; 
+				
+				sprintf(temp2, "T%d", ntemp);
+				createQuadL(1,temp,"",temp2);
+				
+				$$.val = strdup(res_str);
+				$$.t = strdup(temp2);
+				ntemp++;
+			}
+			/******************************************************************************************/
 			| round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f and CONDITION
-            | negation round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f and CONDITION
-		    | round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f or CONDITION
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($3.val),$2.val,$4.val,temp);
+				int res = compare(atoi($2.val),$3.val,atoi($4.val));
+				ntemp++;
+				
+				sprintf(temp2, "T%d", ntemp);
+				createQuadL(3,temp,$7.val,temp2);
+
+				 if (res == 1 && strcmp($7.val, "1") == 0) {
+					 $$.val = strdup("1");
+					 } else {
+						 $$.val = strdup("0");
+						 }
+				$$.t = strdup(temp2);
+				ntemp++;
+			}
+			/******************************************************************************************/
+			| negation round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f and CONDITION
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($4.val),$3.val,$5.val,temp);
+				int res = compare(atoi($3.val),$4.val,atoi($5.val));
+				ntemp++;
+			
+
+				sprintf(temp2, "T%d", ntemp);
+				createQuadL(1,temp,"",temp2);
+				ntemp++;
+			
+				sprintf(temp3, "T%d", ntemp);
+				createQuadL(3,temp,$8.val,temp3);
+
+				 if (res == 1 || strcmp($8.val, "1") == 0) {
+					 $$.val = strdup("0");
+					 } else {
+						 $$.val = strdup("1");
+						 }	
+				$$.t = strdup(temp3);
+				ntemp++;
+			}
+			/******************************************************************************************/
+			| round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f or CONDITION
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($3.val),$2.val,$4.val,temp);
+                int res = compare(atoi($2.val),$3.val,atoi($4.val));
+				ntemp++;
+				
+				sprintf(temp2, "T%d", ntemp);
+				createQuadL(2,temp,$7.val,temp2);
+				 if (res == 1 || strcmp($7.val, "1") == 0) {
+					 $$.val = strdup("1");
+					 } else {
+						 $$.val = strdup("0");
+						 }
+				$$.t = strdup(temp2);
+				ntemp++;
+			}
+			/******************************************************************************************/
 			| negation round_brackets_o RIGHT_SIDE CMP RIGHT_SIDE round_brackets_f or CONDITION
+			{
+				sprintf(temp, "T%d", ntemp); 
+				createQuadC(atoi($4.val),$3.val,$5.val,temp);
+                int res = compare(atoi($3.val),$4.val,atoi($5.val));
 
+				ntemp++;
+			
+
+				sprintf(temp2, "T%d", ntemp);
+				createQuadL(1,temp,"",temp2);
+				ntemp++;
+			
+				sprintf(temp3, "T%d", ntemp);
+				createQuadL(2,temp,$8.val,temp3);
+
+				 if (res == 1 && strcmp($8.val, "1") == 0) {
+					 $$.val = strdup("0");
+					 } else {
+						 $$.val = strdup("1");
+						 }
+
+				$$.t = strdup(temp3);
+				ntemp++;
+			}
 ;
 
 
-CMP : sup 
-	| inf 
-	| sup_eg 
-	| inf_eg 
-	| egal 
-	| not_egal 
+CMP : sup {$$.val = strdup(">"); $$.t = strdup(">"); }
+	| inf {$$.val = strdup("<"); $$.t = strdup("<");}
+	| sup_eg {$$.val = strdup(">="); $$.t = strdup(">=");}
+	| inf_eg {$$.val = strdup("<="); $$.t = strdup("<=");}
+	| egal {$$.val = strdup("=="); $$.t = strdup("==");}
+	| not_egal {$$.val = strdup("!="); $$.t = strdup("!=");} 
 ;
 
-
-INIT_FINISH : entier 
-		  | idf 
+INIT_FINISH : entier {char cstNat[15];  sprintf(cstNat,"%d",$1); $$=strdup(cstNat);}
+		  | idf { 
+					if(routinIdfDeclar($1) == 0)
+					{
+						afficheErreur($1 , 5); 
+					}
+					
+				}
 ;
+
 
 
 
@@ -210,22 +822,62 @@ INIT_FINISH : entier
 
 int yyerror(char *msg){ printf("Line %d ,Col %d : Erreur Syntaxique  \n",line_number, Col);exit(0); }
 
-main () 
+void afficheErreur(char* d , int a)
+    {   
+		switch(a)
+		{    
+		    case 1 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i : Double declaration de la variable %s \n", line_number, Col, d);
+			break;
+			case 2 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i : incompatibilité des types %s \n", line_number, Col, d);
+			break;
+		    case 3 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i : la taille du tableau %s est négative ! \n", line_number, Col, d);
+			break;
+			case 4 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i :  Utilisation d'une Variable %s non initialisé  \n", line_number, Col, d);
+				// still did'nt do this one
+			break;
+			case 5 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i :  Variable Non déclarée %s \n", line_number, Col, d);
+			break;
+			case 6 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i :  Variable %s non déclarée  \n", line_number, Col, d);
+			break;
+			case 7 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i :  Indice du tableau non déclarée %s \n", line_number, Col, d);
+			break;
+			case 8 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i : Modification d'une constante: %s \n", line_number, Col, d);
+			break;
+			case 9 :
+				printf(" \n Erreur Semantique a la ligne %i, colonne %i : Dépassement de capacité %s \n", line_number, Col, d);
+			break;
+			
+		}
+		exit(0);
+    }
+
+
+
+int main () 
 { 
 
-
-
- 
 initialisationMC();
 yyparse();
 afficherMS();
 afficher();
-/* afficherDecl(); */
-/* afficher_qdr();
-optimisation();
-afficher_qdr();
-createAssembler(qc,liste); */
+afficherDecl();
 
+// quadruplets avant optimisation
+afficher_qdr();
+
+ /* optimisation();
+// quadruplets après l'optimisation
+afficher_qdr();
+createAssembler(qc,liste);   */
+return 0;
 }
-yywrap()
-{}
+int yywrap()
+{return 0;}
