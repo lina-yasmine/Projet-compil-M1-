@@ -12,5 +12,4 @@ INSTRUCTION{
         N= (X + 3)  / (5 + 2);
         A= A + 2;
 		
-		%% Resultat A = 6
 }
